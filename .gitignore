@@ -6,6 +6,7 @@ yarn.lock
 # Build output
 docs/
 dist/
+public/src/
 
 # Environment variables
 .env
@@ -27,4 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Testing
-coverage/ 
+coverage/
+
+# Local development
+public/index.html 
