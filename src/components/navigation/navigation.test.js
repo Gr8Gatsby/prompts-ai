@@ -1,52 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import './navigation.js';
 
-class AppNavigation extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.innerHTML = `
-      <nav>
-        <a href="#prompts" data-page="prompts">Prompts</a>
-        <a href="#analytics" data-page="analytics">Analytics</a>
-        <a href="#testing" data-page="testing">Testing</a>
-        <a href="#settings" data-page="settings">Settings</a>
-      </nav>
-    `;
-
-    // Handle click events
-    this.shadowRoot.addEventListener('click', (e) => {
-      if (e.target.matches('a')) {
-        e.preventDefault();
-        const page = e.target.dataset.page;
-        this.setCurrentPage(page);
-        this.dispatchEvent(new CustomEvent('navigation', {
-          detail: { page },
-          bubbles: true,
-          composed: true
-        }));
-      }
-    });
-
-    // Set initial page
-    const hash = window.location.hash.slice(1) || 'prompts';
-    this.setCurrentPage(hash);
-  }
-
-  setCurrentPage(page) {
-    this.shadowRoot.querySelectorAll('a').forEach(link => {
-      if (link.dataset.page === page) {
-        link.setAttribute('aria-current', 'page');
-      } else {
-        link.removeAttribute('aria-current');
-      }
-    });
-  }
-}
-
-// Define the custom element before running tests
-customElements.define('app-navigation', AppNavigation);
-
 describe('app-navigation', () => {
   let element;
 

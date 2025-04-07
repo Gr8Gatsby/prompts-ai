@@ -1,49 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import './app-shell.js';
 
-class AppShell extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.innerHTML = `
-      <app-navigation></app-navigation>
-      <main>
-        <section id="prompts" aria-current="page">
-          <h2>Prompts</h2>
-        </section>
-        <section id="analytics">
-          <h2>Analytics</h2>
-        </section>
-        <section id="testing">
-          <h2>Testing</h2>
-        </section>
-        <section id="settings">
-          <h2>Settings</h2>
-        </section>
-      </main>
-    `;
-
-    // Handle navigation events
-    this.addEventListener('navigation', (e) => {
-      const page = e.detail.page;
-      this.setCurrentPage(page);
-    });
-  }
-
-  setCurrentPage(page) {
-    this.shadowRoot.querySelectorAll('section').forEach(section => {
-      if (section.id === page) {
-        section.setAttribute('aria-current', 'page');
-      } else {
-        section.removeAttribute('aria-current');
-      }
-    });
-  }
-}
-
-// Define the custom element before running tests
-customElements.define('app-shell', AppShell);
-
 describe('app-shell', () => {
   let element;
 
