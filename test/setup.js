@@ -12,6 +12,15 @@ Object.defineProperty(globalThis, 'document', { value: document });
 Object.defineProperty(globalThis, 'CustomElementRegistry', { value: window.CustomElementRegistry });
 Object.defineProperty(globalThis, 'customElements', { value: window.customElements });
 Object.defineProperty(globalThis, 'HTMLElement', { value: window.HTMLElement });
+Object.defineProperty(globalThis, 'CustomEvent', { value: window.CustomEvent });
+
+// Helper function to wait for element to be ready
+globalThis.waitForElement = async (element) => {
+  if (!element.shadowRoot) {
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  return element;
+};
 
 // runs a cleanup after each test case
 afterEach(() => {

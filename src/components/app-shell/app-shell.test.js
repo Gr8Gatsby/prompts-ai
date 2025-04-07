@@ -7,8 +7,7 @@ describe('app-shell', () => {
   beforeEach(async () => {
     element = document.createElement('app-shell');
     document.body.appendChild(element);
-    // Wait for custom element to be defined and initialized
-    await customElements.whenDefined('app-shell');
+    await waitForElement(element);
   });
 
   afterEach(() => {

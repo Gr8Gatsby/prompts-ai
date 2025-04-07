@@ -7,8 +7,7 @@ describe('app-navigation', () => {
   beforeEach(async () => {
     element = document.createElement('app-navigation');
     document.body.appendChild(element);
-    // Wait for custom element to be defined and initialized
-    await customElements.whenDefined('app-navigation');
+    await waitForElement(element);
   });
 
   afterEach(() => {
@@ -32,7 +31,7 @@ describe('app-navigation', () => {
     window.location.hash = '#analytics';
     const navElement = document.createElement('app-navigation');
     document.body.appendChild(navElement);
-    await customElements.whenDefined('app-navigation');
+    await waitForElement(navElement);
 
     const analyticsLink = navElement.shadowRoot.querySelector('a[data-page="analytics"]');
     expect(analyticsLink.getAttribute('aria-current')).toBe('page');

@@ -2,10 +2,10 @@ class Navigation extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this.render();
   }
 
   connectedCallback() {
-    this.render();
     this.setupNavigation();
   }
 
