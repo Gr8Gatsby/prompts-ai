@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Register the custom element before importing
 if (!customElements.get('app-navigation')) {
@@ -7,29 +7,14 @@ if (!customElements.get('app-navigation')) {
 
 describe('app-navigation', () => {
   let element;
-  let mediaQueryList;
 
-  beforeEach(async () => {
-    // Mock matchMedia
-    mediaQueryList = {
-      matches: false,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    };
-    window.matchMedia = vi.fn().mockReturnValue(mediaQueryList);
-
-    // Wait for custom element to be defined
-    await customElements.whenDefined('app-navigation');
-    
+  beforeEach(() => {
     element = document.createElement('app-navigation');
     document.body.appendChild(element);
   });
 
   afterEach(() => {
-    if (element && element.parentNode) {
-      element.parentNode.removeChild(element);
-    }
-    vi.restoreAllMocks();
+    document.body.removeChild(element);
   });
 
   it('should render navigation links with icons', () => {
@@ -37,43 +22,57 @@ describe('app-navigation', () => {
     expect(links.length).toBe(4);
     
     links.forEach(link => {
-      const icon = link.querySelector('.material-symbols-rounded');
-      expect(icon).not.toBeNull();
+      expect(link.querySelector('.material-symbols-rounded')).not.toBeNull();
     });
   });
 
-  it('should set initial page based on hash', () => {
-    window.location.hash = '#testing';
-    element.setupNavigation();
-    
-    const testingLink = element.shadowRoot.querySelector('a[data-page="testing"]');
-    expect(testingLink.getAttribute('aria-current')).toBe('page');
+  it('should set initial active state based on pathname', () => {
+    // Mock window.location.pathname
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/analytics' },
+      writable: true
+    });
+
+    // Create new element to test initial state
+    const newElement = document.createElement('app-navigation');
+    document.body.appendChild(newElement);
+
+    const analyticsLink = newElement.shadowRoot.querySelector('a[href="/analytics"]');
+    expect(analyticsLink.getAttribute('aria-current')).toBe('page');
+
+    document.body.removeChild(newElement);
   });
 
   it('should handle navigation events', () => {
-    const analyticsLink = element.shadowRoot.querySelector('a[data-page="analytics"]');
-    const navigationSpy = vi.fn();
-    element.addEventListener('navigation', navigationSpy);
+    const spy = vi.spyOn(document, 'dispatchEvent');
+    const testingLink = element.shadowRoot.querySelector('a[href="/testing"]');
     
-    analyticsLink.click();
-    
-    expect(navigationSpy).toHaveBeenCalledWith(expect.objectContaining({
-      detail: { page: 'analytics' }
-    }));
-    expect(analyticsLink.getAttribute('aria-current')).toBe('page');
+    testingLink.click();
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'navigate',
+        detail: { page: 'testing' }
+      })
+    );
+
+    expect(testingLink.getAttribute('aria-current')).toBe('page');
   });
 
   describe('mobile menu', () => {
     beforeEach(() => {
-      // Mock mobile viewport before creating element
-      mediaQueryList.matches = true;
-      
-      // Create element (which will use the mocked matchMedia)
+      // Mock mobile viewport
+      window.matchMedia = vi.fn().mockImplementation(query => ({
+        matches: true,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn()
+      }));
+
+      // Recreate element with mobile viewport
+      document.body.removeChild(element);
       element = document.createElement('app-navigation');
       document.body.appendChild(element);
-      
-      // Ensure mobile detection is set up
-      element.setupMobileDetection();
     });
 
     it('should show menu button on mobile', () => {
@@ -84,11 +83,11 @@ describe('app-navigation', () => {
     it('should toggle menu on button click', () => {
       const menuButton = element.shadowRoot.querySelector('.menu-button');
       const menu = element.shadowRoot.querySelector('ul');
-      
+
       menuButton.click();
       expect(menu.classList.contains('open')).toBe(true);
       expect(menuButton.getAttribute('aria-expanded')).toBe('true');
-      
+
       menuButton.click();
       expect(menu.classList.contains('open')).toBe(false);
       expect(menuButton.getAttribute('aria-expanded')).toBe('false');
@@ -97,11 +96,11 @@ describe('app-navigation', () => {
     it('should close menu when clicking outside', () => {
       const menuButton = element.shadowRoot.querySelector('.menu-button');
       const menu = element.shadowRoot.querySelector('ul');
-      
+
       // Open menu
       menuButton.click();
       expect(menu.classList.contains('open')).toBe(true);
-      
+
       // Click outside
       document.body.click();
       expect(menu.classList.contains('open')).toBe(false);
@@ -111,12 +110,14 @@ describe('app-navigation', () => {
     it('should close menu after navigation', () => {
       const menuButton = element.shadowRoot.querySelector('.menu-button');
       const menu = element.shadowRoot.querySelector('ul');
-      const analyticsLink = element.shadowRoot.querySelector('a[data-page="analytics"]');
-      
-      // Open menu and navigate
+      const link = element.shadowRoot.querySelector('a');
+
+      // Open menu
       menuButton.click();
-      analyticsLink.click();
-      
+      expect(menu.classList.contains('open')).toBe(true);
+
+      // Click link
+      link.click();
       expect(menu.classList.contains('open')).toBe(false);
       expect(menuButton.getAttribute('aria-expanded')).toBe('false');
     });

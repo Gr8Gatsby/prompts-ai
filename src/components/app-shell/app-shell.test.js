@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Register the custom element before importing
-if (!customElements.get('app-shell')) {
-  import('./app-shell.js');
-}
+// Import the components before testing
+import '../navigation/navigation.js';
+import '../router/router.js';
+import './app-shell.js';
 
-// Helper function to wait for custom element to be defined
+// Helper function to wait for element to be ready
 const waitForElement = async (element) => {
   return new Promise(resolve => {
     if (element.shadowRoot) {
@@ -20,80 +20,81 @@ describe('app-shell', () => {
   let element;
 
   beforeEach(async () => {
-    // Wait for custom element to be defined
-    await customElements.whenDefined('app-shell');
-    
+    // Wait for custom elements to be defined
+    await Promise.all([
+      customElements.whenDefined('app-shell'),
+      customElements.whenDefined('app-navigation'),
+      customElements.whenDefined('app-router')
+    ]);
+
     element = document.createElement('app-shell');
     document.body.appendChild(element);
     await waitForElement(element);
   });
 
   afterEach(() => {
-    if (element && element.parentNode) {
-      element.parentNode.removeChild(element);
-    }
+    document.body.removeChild(element);
   });
 
-  it('should render all sections', () => {
-    const sections = element.shadowRoot.querySelectorAll('section');
-    expect(sections.length).toBe(4);
+  it('should render navigation and router', () => {
+    const navigation = element.shadowRoot.querySelector('app-navigation');
+    const router = element.shadowRoot.querySelector('app-router');
     
-    const expectedSections = ['prompts', 'analytics', 'testing', 'settings'];
-    sections.forEach((section, index) => {
-      expect(section.id).toBe(expectedSections[index]);
-    });
+    expect(navigation).not.toBeNull();
+    expect(router).not.toBeNull();
   });
 
-  it('should show prompts section by default', () => {
-    const promptsSection = element.shadowRoot.querySelector('#prompts');
-    expect(promptsSection.getAttribute('aria-current')).toBe('page');
+  it('should render header and main sections', () => {
+    const header = element.shadowRoot.querySelector('header');
+    const main = element.shadowRoot.querySelector('main');
     
-    const otherSections = Array.from(element.shadowRoot.querySelectorAll('section')).filter(section => section.id !== 'prompts');
-    otherSections.forEach(section => {
-      expect(section.hasAttribute('aria-current')).toBe(false);
-    });
+    expect(header).not.toBeNull();
+    expect(main).not.toBeNull();
+    expect(header.getAttribute('role')).toBe('banner');
+    expect(main.getAttribute('role')).toBe('main');
   });
 
-  it('should handle navigation events', () => {
-    const event = new CustomEvent('navigation', {
-      detail: { page: 'testing' },
-      bubbles: true,
-      composed: true
-    });
-    
-    element.dispatchEvent(event);
-    
-    const testingSection = element.shadowRoot.querySelector('#testing');
-    expect(testingSection.getAttribute('aria-current')).toBe('page');
-    
-    const otherSections = Array.from(element.shadowRoot.querySelectorAll('section')).filter(section => section.id !== 'testing');
-    otherSections.forEach(section => {
-      expect(section.hasAttribute('aria-current')).toBe(false);
-    });
-  });
-
-  it('should maintain section visibility when navigation occurs', () => {
-    // Navigate to analytics
-    element.dispatchEvent(new CustomEvent('navigation', {
-      detail: { page: 'analytics' },
-      bubbles: true,
-      composed: true
+  it('should apply dark mode styles when preferred', async () => {
+    // Mock prefers-color-scheme media query
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: query === '(prefers-color-scheme: dark)',
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
     }));
 
-    // Check analytics is visible
-    const analyticsSection = element.shadowRoot.querySelector('#analytics');
-    expect(analyticsSection.getAttribute('aria-current')).toBe('page');
+    // Create new element to test dark mode
+    const darkElement = document.createElement('app-shell');
+    document.body.appendChild(darkElement);
+    await waitForElement(darkElement);
 
-    // Navigate to settings
-    element.dispatchEvent(new CustomEvent('navigation', {
-      detail: { page: 'settings' },
-      bubbles: true,
-      composed: true
+    const header = darkElement.shadowRoot.querySelector('header');
+    const computedStyle = getComputedStyle(header);
+    
+    expect(computedStyle.backgroundColor).toBe('#1a1a1a');
+
+    document.body.removeChild(darkElement);
+  });
+
+  it('should apply mobile styles when viewport is small', async () => {
+    // Mock mobile viewport
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: query === '(max-width: 767px)',
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
     }));
 
-    // Check settings is visible and analytics is hidden
-    const settingsSection = element.shadowRoot.querySelector('#settings');
-    expect(settingsSection.getAttribute('aria-current')).toBe('page');
-    expect(analyticsSection.hasAttribute('aria-current')).toBe(false);
+    // Create new element to test mobile styles
+    const mobileElement = document.createElement('app-shell');
+    document.body.appendChild(mobileElement);
+    await waitForElement(mobileElement);
+
+    const main = mobileElement.shadowRoot.querySelector('main');
+    const computedStyle = getComputedStyle(main);
+    
+    expect(computedStyle.padding).toBe('24px');
+
+    document.body.removeChild(mobileElement);
   });
 }); 

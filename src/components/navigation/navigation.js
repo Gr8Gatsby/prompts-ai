@@ -23,10 +23,13 @@ class Navigation extends HTMLElement {
   connectedCallback() {
     this.setupNavigation();
     this.setupMobileDetection();
+    this.setupClickOutsideHandler();
+    this.setInitialActiveState();
   }
 
   disconnectedCallback() {
     this.mediaQuery?.removeEventListener('change', this.handleMobileChange);
+    document.removeEventListener('click', this.handleClickOutside);
   }
 
   setupMobileDetection() {
@@ -39,17 +42,41 @@ class Navigation extends HTMLElement {
     this.updateMobileStyles();
   }
 
+  setupClickOutsideHandler() {
+    this.handleClickOutside = (e) => {
+      const menu = this.shadowRoot.querySelector('ul');
+      const menuButton = this.shadowRoot.querySelector('.menu-button');
+      if (this.isMobile && menu.classList.contains('open') && 
+          !menu.contains(e.target) && !menuButton.contains(e.target)) {
+        menu.classList.remove('open');
+        menuButton.setAttribute('aria-expanded', 'false');
+      }
+    };
+    document.addEventListener('click', this.handleClickOutside);
+  }
+
   updateMobileStyles() {
     const menuButton = this.shadowRoot.querySelector('.menu-button');
     if (this.isMobile) {
       menuButton.style.display = 'flex';
     } else {
       menuButton.style.display = 'none';
-      // Reset menu state when switching to desktop
       const menu = this.shadowRoot.querySelector('ul');
       menu.classList.remove('open');
       menuButton.setAttribute('aria-expanded', 'false');
     }
+  }
+
+  setInitialActiveState() {
+    const links = this.shadowRoot.querySelectorAll('a');
+    const currentPath = window.location.pathname;
+    links.forEach(link => {
+      if (link.getAttribute('href') === currentPath) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
   }
 
   render() {
@@ -233,25 +260,25 @@ class Navigation extends HTMLElement {
         </button>
         <ul>
           <li>
-            <a href="#prompts" data-page="prompts">
+            <a href="/prompts" data-page="prompts">
               <span class="material-symbols-rounded">edit_note</span>
               <span>Prompts</span>
             </a>
           </li>
           <li>
-            <a href="#analytics" data-page="analytics">
+            <a href="/analytics" data-page="analytics">
               <span class="material-symbols-rounded">analytics</span>
               <span>Analytics</span>
             </a>
           </li>
           <li>
-            <a href="#testing" data-page="testing">
+            <a href="/testing" data-page="testing">
               <span class="material-symbols-rounded">science</span>
               <span>Testing</span>
             </a>
           </li>
           <li>
-            <a href="#settings" data-page="settings">
+            <a href="/settings" data-page="settings">
               <span class="material-symbols-rounded">settings</span>
               <span>Settings</span>
             </a>
@@ -262,57 +289,40 @@ class Navigation extends HTMLElement {
   }
 
   setupNavigation() {
-    const links = this.shadowRoot.querySelectorAll('a');
     const menuButton = this.shadowRoot.querySelector('.menu-button');
     const menu = this.shadowRoot.querySelector('ul');
-    
+    const links = this.shadowRoot.querySelectorAll('a');
+
     // Toggle mobile menu
-    menuButton?.addEventListener('click', () => {
-      const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
-      menuButton.setAttribute('aria-expanded', !isExpanded);
-      menu.classList.toggle('open');
+    menuButton.addEventListener('click', () => {
+      const isOpen = menu.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', isOpen.toString());
     });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-      const isOutside = !this.contains(e.target) && !e.composedPath().includes(this);
-      if (isOutside && menu.classList.contains('open')) {
-        menu.classList.remove('open');
-        menuButton.setAttribute('aria-expanded', 'false');
-      }
-    });
-    
+    // Handle navigation
     links.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const page = link.dataset.page;
         
-        // Update active link
-        links.forEach(l => l.removeAttribute('aria-current'));
-        link.setAttribute('aria-current', 'page');
-        
-        // Close mobile menu
-        menu.classList.remove('open');
-        menuButton.setAttribute('aria-expanded', 'false');
-        
         // Dispatch navigation event
-        this.dispatchEvent(new CustomEvent('navigation', {
+        document.dispatchEvent(new CustomEvent('navigate', {
           detail: { page },
           bubbles: true,
           composed: true
         }));
+
+        // Update active state
+        links.forEach(l => l.removeAttribute('aria-current'));
+        link.setAttribute('aria-current', 'page');
+
+        // Close mobile menu if open
+        if (this.isMobile) {
+          menu.classList.remove('open');
+          menuButton.setAttribute('aria-expanded', 'false');
+        }
       });
     });
-
-    // Set initial page
-    const initialPage = window.location.hash.slice(1) || 'prompts';
-    const initialLink = this.shadowRoot.querySelector(`a[data-page="${initialPage}"]`);
-    if (initialLink) {
-      initialLink.click();
-    }
-
-    // Initial mobile check
-    this.updateMobileStyles();
   }
 }
 
