@@ -1,16 +1,16 @@
 class AppShell extends HTMLElement {
   constructor() {
     super();
-    // No need to attach shadow root as it's already created by DSD
+    this.attachShadow({ mode: 'open' });
+    this.render();
   }
 
   connectedCallback() {
-    this.render();
     this.setupNavigation();
   }
 
   render() {
-    this.innerHTML = `
+    this.shadowRoot.innerHTML = `
       <style>
         :host {
           display: block;
@@ -22,14 +22,6 @@ class AppShell extends HTMLElement {
         header {
           background: #f5f5f5;
           padding: 1rem;
-        }
-
-        nav ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          gap: 1rem;
         }
 
         main {
@@ -52,18 +44,11 @@ class AppShell extends HTMLElement {
       </style>
 
       <header role="banner">
-        <nav role="navigation" aria-label="Main navigation">
-          <ul>
-            <li><a href="#prompts" data-page="prompts">Prompts</a></li>
-            <li><a href="#analytics" data-page="analytics">Analytics</a></li>
-            <li><a href="#testing" data-page="testing">Testing</a></li>
-            <li><a href="#settings" data-page="settings">Settings</a></li>
-          </ul>
-        </nav>
+        <app-navigation></app-navigation>
       </header>
 
       <main role="main">
-        <section id="prompts" aria-labelledby="prompts-heading">
+        <section id="prompts" aria-labelledby="prompts-heading" aria-current="page">
           <h1 id="prompts-heading">Prompt Management</h1>
         </section>
 
@@ -87,7 +72,7 @@ class AppShell extends HTMLElement {
   }
 
   setupNavigation() {
-    const sections = this.querySelectorAll('section');
+    const sections = this.shadowRoot.querySelectorAll('section');
     
     // Listen for navigation events
     this.addEventListener('navigation', (e) => {
