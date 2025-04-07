@@ -1,0 +1,25 @@
+{
+  "name": "prompts-ai",
+  "version": "1.0.0",
+  "description": "A web-based prompt management application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "web-test-runner \"src/**/*.test.js\" --playwright",
+    "deploy": "chmod +x deploy.sh && ./deploy.sh"
+  },
+  "keywords": [
+    "prompts",
+    "ai",
+    "web-components"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@web/test-runner": "^0.16.0",
+    "@web/test-runner-playwright": "^0.10.0",
+    "vite": "^5.0.0"
+  }
+}
