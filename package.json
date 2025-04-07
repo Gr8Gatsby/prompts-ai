@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "web-test-runner \"src/**/*.test.js\" --playwright",
-    "deploy": "chmod +x deploy.sh && ./deploy.sh"
+    "prepare": "husky install"
   },
   "keywords": [
     "prompts",
@@ -18,8 +18,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@web/test-runner": "^0.16.0",
     "@web/test-runner-playwright": "^0.10.0",
+    "husky": "^9.1.7",
     "vite": "^5.0.0"
   }
 }
