@@ -10,6 +10,8 @@ export default defineConfig({
   build: {
     outDir: 'docs',
     emptyOutDir: true,
+    target: 'esnext',
+    minify: 'terser',
   },
   server: {
     open: true,
@@ -17,11 +19,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')
-    }
-  },
-  esbuild: {
-    supported: {
-      'shadow-root': true
     }
   }
 }); 
