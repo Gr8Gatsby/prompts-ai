@@ -37,6 +37,17 @@ export default defineConfig({
           CustomEvent: true
         }
       }
+    },
+    coverage: {
+      provider: 'v8',
+      exclude: [
+        'public/**',
+        'commitlint.config.js',
+        'test/**',
+        '**/*.test.js',
+        '**/*.spec.js',
+        'vite.config.js'
+      ]
     }
   }
 }); 
