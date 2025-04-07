@@ -20,5 +20,11 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
+  },
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: ['./test/setup.js'],
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
   }
 }); 
