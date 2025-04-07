@@ -1,23 +1,12 @@
 // Add any global test setup here
-import { afterEach, beforeEach } from 'vitest';
+import { afterEach } from 'vitest';
+import { window } from 'happy-dom';
 
-// Reset the custom elements registry before each test
-beforeEach(() => {
-  // Store existing custom elements
-  const existingElements = Array.from(window.customElements.elements || []);
-  
-  // Create a new custom elements registry
-  window.customElements = new CustomElementRegistry();
-  
-  // Re-define any built-in elements that might be needed
-  existingElements.forEach(([name, constructor]) => {
-    try {
-      window.customElements.define(name, constructor);
-    } catch (e) {
-      // Ignore errors for already defined elements
-    }
-  });
-});
+// Make sure we have a document and window
+global.window = window;
+global.document = window.document;
+global.CustomElementRegistry = window.CustomElementRegistry;
+global.customElements = window.customElements;
 
 // runs a cleanup after each test case
 afterEach(() => {

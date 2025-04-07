@@ -12,7 +12,9 @@ describe('app-navigation', () => {
   });
 
   afterEach(() => {
-    element.remove();
+    if (element && element.parentNode) {
+      element.parentNode.removeChild(element);
+    }
   });
 
   it('should render navigation links', () => {
@@ -35,7 +37,9 @@ describe('app-navigation', () => {
     const analyticsLink = navElement.shadowRoot.querySelector('a[data-page="analytics"]');
     expect(analyticsLink.getAttribute('aria-current')).toBe('page');
     
-    navElement.remove();
+    if (navElement && navElement.parentNode) {
+      navElement.parentNode.removeChild(navElement);
+    }
     window.location.hash = '';
   });
 

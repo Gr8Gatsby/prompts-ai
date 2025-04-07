@@ -12,7 +12,9 @@ describe('app-shell', () => {
   });
 
   afterEach(() => {
-    element.remove();
+    if (element && element.parentNode) {
+      element.parentNode.removeChild(element);
+    }
   });
 
   it('should render all sections', () => {
