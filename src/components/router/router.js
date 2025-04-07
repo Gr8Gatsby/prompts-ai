@@ -6,8 +6,12 @@ class Router extends HTMLElement {
   }
 
   connectedCallback() {
-    this.handleRoute();
-    window.addEventListener('hashchange', () => this.handleRoute());
+    // Set initial route
+    requestAnimationFrame(() => {
+      this.handleRoute();
+      // Listen for hash changes
+      window.addEventListener('hashchange', () => this.handleRoute());
+    });
   }
 
   disconnectedCallback() {
@@ -15,29 +19,33 @@ class Router extends HTMLElement {
   }
 
   render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-        }
-        ::slotted([data-page]) {
-          display: none;
-        }
-        ::slotted([data-page][active]) {
-          display: block;
-        }
-      </style>
-      <slot></slot>
+    const style = document.createElement('style');
+    style.textContent = `
+      :host {
+        display: block;
+        width: 100%;
+      }
+
+      ::slotted([data-page]) {
+        display: none !important;
+      }
+
+      ::slotted([data-page][active]) {
+        display: block !important;
+      }
     `;
+
+    const slot = document.createElement('slot');
+    this.shadowRoot.replaceChildren(style, slot);
   }
 
   async handleRoute() {
     const hash = window.location.hash.slice(1);
     const validPages = ['prompts', 'analytics', 'testing', 'settings'];
     const currentPage = validPages.includes(hash) ? hash : 'prompts';
-    const pages = this.querySelectorAll('[data-page]');
     
     // Update active state
+    const pages = Array.from(this.children).filter(el => el.hasAttribute('data-page'));
     pages.forEach(page => {
       if (page.dataset.page === currentPage) {
         page.setAttribute('active', '');

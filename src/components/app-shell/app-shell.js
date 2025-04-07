@@ -1,11 +1,13 @@
+import '../navigation/navigation.js';
+
 class AppShell extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this.render();
   }
 
   connectedCallback() {
+    this.render();
     this.setupNavigation();
   }
 
@@ -14,18 +16,24 @@ class AppShell extends HTMLElement {
       <style>
         :host {
           display: block;
-          min-height: 100vh;
-          display: grid;
-          grid-template-rows: auto 1fr auto;
+          height: 100%;
+          width: 100%;
         }
 
         header {
-          background: #f5f5f5;
-          padding: 1rem;
+          background: #1a1a1a;
+          padding: 0;
+          position: sticky;
+          top: 0;
+          z-index: 100;
         }
 
         main {
-          padding: 1rem;
+          display: block;
+          padding: 24px;
+          box-sizing: border-box;
+          min-height: calc(100vh - 44px);
+          background: var(--main-bg, #ffffff);
         }
 
         section {
@@ -36,10 +44,34 @@ class AppShell extends HTMLElement {
           display: block;
         }
 
-        footer {
-          background: #f5f5f5;
-          padding: 1rem;
-          text-align: center;
+        h1 {
+          margin: 0 0 24px 0;
+          font-size: 24px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+          color: var(--text-color, #000000);
+        }
+
+        @media (max-width: 767px) {
+          main {
+            padding: 16px;
+          }
+
+          h1 {
+            font-size: 20px;
+            margin-bottom: 16px;
+          }
+        }
+
+        @media (prefers-color-scheme: dark) {
+          :host {
+            --main-bg: #1c1c1e;
+            --text-color: #ffffff;
+          }
+
+          header {
+            background: #000000;
+          }
         }
       </style>
 
@@ -50,43 +82,45 @@ class AppShell extends HTMLElement {
       <main role="main">
         <section id="prompts" aria-labelledby="prompts-heading" aria-current="page">
           <h1 id="prompts-heading">Prompt Management</h1>
+          <prompt-editor></prompt-editor>
         </section>
-
+        
         <section id="analytics" aria-labelledby="analytics-heading">
           <h1 id="analytics-heading">Analytics Dashboard</h1>
+          <analytics-dashboard></analytics-dashboard>
         </section>
-
+        
         <section id="testing" aria-labelledby="testing-heading">
           <h1 id="testing-heading">Prompt Testing</h1>
+          <testing-interface></testing-interface>
         </section>
-
+        
         <section id="settings" aria-labelledby="settings-heading">
           <h1 id="settings-heading">Settings</h1>
+          <settings-panel></settings-panel>
         </section>
       </main>
-
-      <footer role="contentinfo">
-        <p>Prompt Management App</p>
-      </footer>
     `;
   }
 
   setupNavigation() {
-    const sections = this.shadowRoot.querySelectorAll('section');
-    
-    // Listen for navigation events
     this.addEventListener('navigation', (e) => {
-      const { page } = e.detail;
+      const page = e.detail.page;
+      const sections = this.shadowRoot.querySelectorAll('section');
       
-      // Show selected section
       sections.forEach(section => {
-        section.removeAttribute('aria-current');
         if (section.id === page) {
           section.setAttribute('aria-current', 'page');
+          document.title = `Prompts AI - ${page.charAt(0).toUpperCase() + page.slice(1)}`;
+        } else {
+          section.removeAttribute('aria-current');
         }
       });
     });
   }
 }
 
-customElements.define('app-shell', AppShell); 
+// Only define the custom element if it hasn't been defined yet
+if (!customElements.get('app-shell')) {
+  customElements.define('app-shell', AppShell);
+}

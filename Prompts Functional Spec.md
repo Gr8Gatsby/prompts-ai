@@ -1,6 +1,92 @@
 # Prompt Management Web App (Frontend-Only)
 
-A responsive, accessible, and deployable prompt management application built with TDD and hosted on GitHub Pages. Prompts are stored in the browser via `localStorage` and support tagging, importing/exporting, and clipboard copying.
+A responsive, accessible, and deployable prompt management application built with TDD and hosted on GitHub Pages. The app follows macOS design principles to provide a native-like experience. Prompts are stored in the browser via `localStorage` and support tagging, importing/exporting, and clipboard copying.
+
+---
+
+## 🎨 UI/Design System
+
+### Design Principles
+- Follow macOS design language for a native app feel
+- Prevent layout shifts during state changes
+- Use subtle animations and transitions
+- Support both light and dark modes
+- Maintain consistent spacing and sizing
+- Prioritize accessibility without compromising aesthetics
+
+### Color System
+- Light Mode:
+  - Background: `#f5f5f5`
+  - Text: `#333333`
+  - Border: `#e0e0e0`
+  - Accent: `#007aff`
+  - Hover states: `rgba(0, 0, 0, 0.05)`
+  - Active states: `rgba(0, 0, 0, 0.08)`
+
+- Dark Mode:
+  - Background: `#1c1c1e`
+  - Text: `#ffffff`
+  - Border: `#2c2c2e`
+  - Accent: `#0a84ff`
+  - Secondary text: `#8e8e93`
+  - Hover states: `rgba(255, 255, 255, 0.05)`
+  - Active states: `rgba(255, 255, 255, 0.08)`
+
+### Typography
+- System fonts: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif`
+- Base font size: `14px`
+- Letter spacing: `-0.01em` for headers
+- Font weights: 
+  - Regular: `400`
+  - Medium: `500`
+  - Semibold: `600`
+- Text rendering: `-webkit-font-smoothing: antialiased`
+
+### Components
+- Navigation:
+  - Height: `44px`
+  - Item padding: `6px 12px`
+  - Border radius: `6px`
+  - Selected indicator: `2px` line with system accent color
+  - Smooth transitions: `0.2s ease`
+
+- Buttons:
+  - Border radius: `6px`
+  - Height: `32px`
+  - Padding: `0 16px`
+  - Hover/active states with subtle background changes
+  - Icon + text alignment with `16px` spacing
+
+- Cards/Panels:
+  - Border radius: `8px`
+  - Shadow: `0 1px 3px rgba(0,0,0,0.1)`
+  - Background: Subtle contrast from main background
+  - Padding: `16px`
+
+- Forms:
+  - Input height: `32px`
+  - Border radius: `6px`
+  - Focus states with system accent color
+  - Label size: `12px`
+  - Error states with system red
+
+### Layout
+- Maximum content width: `800px`
+- Consistent spacing scale:
+  - `4px` - Minimal spacing
+  - `8px` - Component internal spacing
+  - `16px` - Component margins
+  - `24px` - Section spacing
+  - `32px` - Large section spacing
+
+### Animations
+- Duration: `0.2s`
+- Timing function: `ease`
+- Properties to animate:
+  - Background color
+  - Transform
+  - Opacity
+  - Box shadow
 
 ---
 
@@ -27,6 +113,12 @@ A responsive, accessible, and deployable prompt management application built wit
 - [ ] Import/export prompts to/from JSON
 - [ ] Responsive, mobile-first layout
 - [ ] Accessible UI with semantic HTML
+- [ ] Modern macOS-like UI:
+  - [ ] Native-like navigation
+  - [ ] System-matched dark mode
+  - [ ] Smooth transitions
+  - [ ] No layout shifts
+  - [ ] Consistent component styling
 
 ### Analytics
 - [ ] Usage statistics dashboard

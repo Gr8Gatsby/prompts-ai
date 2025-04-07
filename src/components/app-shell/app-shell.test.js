@@ -1,10 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import './app-shell.js';
+
+// Register the custom element before importing
+if (!customElements.get('app-shell')) {
+  import('./app-shell.js');
+}
+
+// Helper function to wait for custom element to be defined
+const waitForElement = async (element) => {
+  return new Promise(resolve => {
+    if (element.shadowRoot) {
+      resolve();
+    } else {
+      element.addEventListener('load', () => resolve(), { once: true });
+    }
+  });
+};
 
 describe('app-shell', () => {
   let element;
 
   beforeEach(async () => {
+    // Wait for custom element to be defined
+    await customElements.whenDefined('app-shell');
+    
     element = document.createElement('app-shell');
     document.body.appendChild(element);
     await waitForElement(element);

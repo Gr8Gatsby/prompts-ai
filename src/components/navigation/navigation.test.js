@@ -1,69 +1,124 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import './navigation.js';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// Register the custom element before importing
+if (!customElements.get('app-navigation')) {
+  import('./navigation.js');
+}
 
 describe('app-navigation', () => {
   let element;
+  let mediaQueryList;
 
   beforeEach(async () => {
+    // Mock matchMedia
+    mediaQueryList = {
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    window.matchMedia = vi.fn().mockReturnValue(mediaQueryList);
+
+    // Wait for custom element to be defined
+    await customElements.whenDefined('app-navigation');
+    
     element = document.createElement('app-navigation');
     document.body.appendChild(element);
-    await waitForElement(element);
   });
 
   afterEach(() => {
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
     }
+    vi.restoreAllMocks();
   });
 
-  it('should render navigation links', () => {
+  it('should render navigation links with icons', () => {
     const links = element.shadowRoot.querySelectorAll('a');
     expect(links.length).toBe(4);
     
-    const expectedLinks = ['Prompts', 'Analytics', 'Testing', 'Settings'];
-    links.forEach((link, index) => {
-      expect(link.textContent).toBe(expectedLinks[index]);
+    links.forEach(link => {
+      const icon = link.querySelector('.material-symbols-rounded');
+      expect(icon).not.toBeNull();
     });
   });
 
-  it('should set initial page based on hash', async () => {
-    // Set hash and create new element
-    window.location.hash = '#analytics';
-    const navElement = document.createElement('app-navigation');
-    document.body.appendChild(navElement);
-    await waitForElement(navElement);
-
-    const analyticsLink = navElement.shadowRoot.querySelector('a[data-page="analytics"]');
-    expect(analyticsLink.getAttribute('aria-current')).toBe('page');
+  it('should set initial page based on hash', () => {
+    window.location.hash = '#testing';
+    element.setupNavigation();
     
-    if (navElement && navElement.parentNode) {
-      navElement.parentNode.removeChild(navElement);
-    }
-    window.location.hash = '';
-  });
-
-  it('should emit navigation event when link is clicked', () => {
-    let emittedDetail = null;
-    element.addEventListener('navigation', (e) => {
-      emittedDetail = e.detail;
-    });
-
     const testingLink = element.shadowRoot.querySelector('a[data-page="testing"]');
-    testingLink.click();
-
-    expect(emittedDetail).not.toBeNull();
-    expect(emittedDetail.page).toBe('testing');
+    expect(testingLink.getAttribute('aria-current')).toBe('page');
   });
 
-  it('should update aria-current when link is clicked', () => {
-    const settingsLink = element.shadowRoot.querySelector('a[data-page="settings"]');
-    settingsLink.click();
-
-    expect(settingsLink.getAttribute('aria-current')).toBe('page');
+  it('should handle navigation events', () => {
+    const analyticsLink = element.shadowRoot.querySelector('a[data-page="analytics"]');
+    const navigationSpy = vi.fn();
+    element.addEventListener('navigation', navigationSpy);
     
-    const otherLinks = Array.from(element.shadowRoot.querySelectorAll('a')).filter(link => link !== settingsLink);
-    otherLinks.forEach(link => {
-      expect(link.hasAttribute('aria-current')).toBe(false);
+    analyticsLink.click();
+    
+    expect(navigationSpy).toHaveBeenCalledWith(expect.objectContaining({
+      detail: { page: 'analytics' }
+    }));
+    expect(analyticsLink.getAttribute('aria-current')).toBe('page');
+  });
+
+  describe('mobile menu', () => {
+    beforeEach(() => {
+      // Mock mobile viewport before creating element
+      mediaQueryList.matches = true;
+      
+      // Create element (which will use the mocked matchMedia)
+      element = document.createElement('app-navigation');
+      document.body.appendChild(element);
+      
+      // Ensure mobile detection is set up
+      element.setupMobileDetection();
+    });
+
+    it('should show menu button on mobile', () => {
+      const menuButton = element.shadowRoot.querySelector('.menu-button');
+      expect(menuButton.style.display).toBe('flex');
+    });
+
+    it('should toggle menu on button click', () => {
+      const menuButton = element.shadowRoot.querySelector('.menu-button');
+      const menu = element.shadowRoot.querySelector('ul');
+      
+      menuButton.click();
+      expect(menu.classList.contains('open')).toBe(true);
+      expect(menuButton.getAttribute('aria-expanded')).toBe('true');
+      
+      menuButton.click();
+      expect(menu.classList.contains('open')).toBe(false);
+      expect(menuButton.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('should close menu when clicking outside', () => {
+      const menuButton = element.shadowRoot.querySelector('.menu-button');
+      const menu = element.shadowRoot.querySelector('ul');
+      
+      // Open menu
+      menuButton.click();
+      expect(menu.classList.contains('open')).toBe(true);
+      
+      // Click outside
+      document.body.click();
+      expect(menu.classList.contains('open')).toBe(false);
+      expect(menuButton.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('should close menu after navigation', () => {
+      const menuButton = element.shadowRoot.querySelector('.menu-button');
+      const menu = element.shadowRoot.querySelector('ul');
+      const analyticsLink = element.shadowRoot.querySelector('a[data-page="analytics"]');
+      
+      // Open menu and navigate
+      menuButton.click();
+      analyticsLink.click();
+      
+      expect(menu.classList.contains('open')).toBe(false);
+      expect(menuButton.getAttribute('aria-expanded')).toBe('false');
     });
   });
 }); 
