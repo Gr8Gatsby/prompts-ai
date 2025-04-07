@@ -1,6 +1,7 @@
 class Navigation extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({ mode: 'open' });
   }
 
   connectedCallback() {
@@ -9,7 +10,7 @@ class Navigation extends HTMLElement {
   }
 
   render() {
-    this.innerHTML = `
+    this.shadowRoot.innerHTML = `
       <style>
         nav {
           display: block;
@@ -53,7 +54,7 @@ class Navigation extends HTMLElement {
   }
 
   setupNavigation() {
-    const links = this.querySelectorAll('a');
+    const links = this.shadowRoot.querySelectorAll('a');
     
     links.forEach(link => {
       link.addEventListener('click', (e) => {
@@ -75,7 +76,7 @@ class Navigation extends HTMLElement {
 
     // Set initial page
     const initialPage = window.location.hash.slice(1) || 'prompts';
-    const initialLink = this.querySelector(`a[data-page="${initialPage}"]`);
+    const initialLink = this.shadowRoot.querySelector(`a[data-page="${initialPage}"]`);
     if (initialLink) {
       initialLink.click();
     }
