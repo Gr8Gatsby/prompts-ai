@@ -63,17 +63,17 @@ export class AppShell extends HTMLElement {
           width: 100%;
           display: grid;
           grid-template-rows: var(--header-height) 1fr;
-          background: #121212;
-          color: #ffffff;
+          background: var(--primary-background);
+          color: var(--text-primary);
         }
 
         header {
-          background: #1a1a1a;
+          background: var(--secondary-background);
           padding: 0;
           position: sticky;
           top: 0;
           z-index: var(--z-index-sticky);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          border-bottom: 1px solid var(--border-color);
         }
 
         main {
@@ -81,7 +81,7 @@ export class AppShell extends HTMLElement {
           width: 100%;
           box-sizing: border-box;
           overflow-y: auto;
-          background: #121212;
+          background: var(--primary-background);
         }
 
         section {
@@ -98,7 +98,7 @@ export class AppShell extends HTMLElement {
           font-size: var(--font-size-xl);
           font-weight: var(--font-weight-semibold);
           letter-spacing: -0.01em;
-          color: rgba(255, 255, 255, 0.95);
+          color: var(--text-primary);
         }
 
         @media (max-width: 767px) {

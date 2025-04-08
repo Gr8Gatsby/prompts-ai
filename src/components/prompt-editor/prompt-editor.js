@@ -196,16 +196,15 @@ class PromptEditor extends HTMLElement {
         :host {
           display: block;
           width: 100%;
-          color: #ffffff;
+          color: var(--text-primary);
         }
 
         .editor {
-          composes: card;
           max-width: var(--content-width);
           margin: 0 auto;
-          background: #1a1a1a;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
+          background: var(--card-background);
+          border: 1px solid var(--border-color);
+          border-radius: var(--card-border-radius);
           padding: 32px;
           box-sizing: border-box;
         }
@@ -224,18 +223,17 @@ class PromptEditor extends HTMLElement {
           display: block;
           margin-bottom: 8px;
           font-size: 14px;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.95);
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-primary);
           letter-spacing: 0.01em;
         }
 
         .input {
-          composes: input;
           width: 100%;
-          background: #2a2a2a;
-          color: rgba(255, 255, 255, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 8px;
+          background: var(--input-background);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
+          border-radius: var(--input-border-radius);
           padding: 12px;
           font-size: 15px;
           transition: all 0.2s ease;
@@ -244,18 +242,18 @@ class PromptEditor extends HTMLElement {
         }
 
         .input:focus {
-          border-color: #4d9fff;
-          box-shadow: 0 0 0 2px rgba(77, 159, 255, 0.25);
+          border-color: var(--accent-primary);
+          box-shadow: var(--input-focus-ring);
           outline: none;
         }
 
         .input::placeholder {
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--text-tertiary);
         }
 
         .input.invalid {
-          border-color: #ff4d4d;
-          background: rgba(255, 77, 77, 0.1);
+          border-color: var(--accent-error);
+          background: var(--error-alpha);
         }
 
         textarea.input {
@@ -272,9 +270,9 @@ class PromptEditor extends HTMLElement {
           flex-wrap: wrap;
           gap: 8px;
           padding: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 8px;
-          background: #2a2a2a;
+          border: 1px solid var(--border-color);
+          border-radius: var(--input-border-radius);
+          background: var(--input-background);
           min-height: 48px;
           align-items: flex-start;
           width: 100%;
@@ -282,21 +280,21 @@ class PromptEditor extends HTMLElement {
         }
 
         .tags-input:focus-within {
-          border-color: #4d9fff;
-          box-shadow: 0 0 0 2px rgba(77, 159, 255, 0.25);
+          border-color: var(--accent-primary);
+          box-shadow: var(--input-focus-ring);
         }
 
         .tag {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: #333333;
-          color: rgba(255, 255, 255, 0.95);
+          background: var(--button-secondary-bg);
+          color: var(--text-primary);
           padding: 6px 10px;
           border-radius: 6px;
           font-size: 14px;
-          font-weight: 500;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          font-weight: var(--font-weight-medium);
+          border: 1px solid var(--button-secondary-border);
           line-height: 1.5;
         }
 
@@ -304,7 +302,7 @@ class PromptEditor extends HTMLElement {
           border: none;
           background: none;
           padding: 2px;
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-secondary);
           cursor: pointer;
           display: inline-flex;
           align-items: center;
@@ -318,15 +316,15 @@ class PromptEditor extends HTMLElement {
         }
 
         .tag button:hover {
-          color: #ffffff;
-          background: rgba(255, 255, 255, 0.1);
+          color: var(--text-primary);
+          background: var(--hover-overlay);
         }
 
         .tag-input {
           border: none;
           padding: 6px;
           background: none;
-          color: rgba(255, 255, 255, 0.95);
+          color: var(--text-primary);
           font-size: 14px;
           min-width: 60px;
           flex: 1;
@@ -339,7 +337,7 @@ class PromptEditor extends HTMLElement {
         }
 
         .tag-input::placeholder {
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--text-tertiary);
         }
 
         .actions {
@@ -350,13 +348,13 @@ class PromptEditor extends HTMLElement {
         }
 
         .save-button {
-          background: #6366f1;
-          color: white;
+          background: var(--button-primary-bg);
+          color: var(--text-primary);
           height: 44px;
           padding: 0 24px;
           border-radius: 12px;
           font-size: 16px;
-          font-weight: 600;
+          font-weight: var(--font-weight-semibold);
           cursor: pointer;
           transition: all 0.2s ease;
           display: inline-flex;
@@ -370,30 +368,30 @@ class PromptEditor extends HTMLElement {
           border: none;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+          box-shadow: var(--shadow-sm);
         }
 
         .save-button:hover:not(:disabled) {
-          background: #818cf8;
+          background: var(--button-primary-hover);
           transform: translateY(-1px);
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+          box-shadow: var(--shadow-md);
         }
 
         .save-button:active:not(:disabled) {
-          background: #4f46e5;
+          background: var(--button-primary-active);
           transform: translateY(0);
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          box-shadow: var(--shadow-sm);
         }
 
         .cancel-button {
-          background: rgba(255, 255, 255, 0.05);
-          color: #ffffff;
-          border: 2px solid rgba(255, 255, 255, 0.1);
+          background: var(--button-secondary-bg);
+          color: var(--text-primary);
+          border: 2px solid var(--button-secondary-border);
           height: 44px;
           padding: 0 24px;
           border-radius: 12px;
           font-size: 16px;
-          font-weight: 600;
+          font-weight: var(--font-weight-semibold);
           cursor: pointer;
           transition: all 0.2s ease;
           display: inline-flex;
@@ -409,18 +407,18 @@ class PromptEditor extends HTMLElement {
         }
 
         .cancel-button:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: var(--button-secondary-hover);
+          border-color: var(--button-secondary-border-hover);
           transform: translateY(-1px);
         }
 
         .cancel-button:active:not(:disabled) {
           transform: translateY(0);
-          background: rgba(255, 255, 255, 0.05);
+          background: var(--button-secondary-bg);
         }
 
         .save-button:disabled {
-          opacity: 0.5;
+          opacity: var(--disabled-opacity);
           cursor: not-allowed;
           transform: none !important;
           box-shadow: none !important;
@@ -428,18 +426,18 @@ class PromptEditor extends HTMLElement {
 
         @media (max-width: 767px) {
           .editor {
-            padding: 24px;
+            padding: var(--spacing-md);
           }
           
           .actions {
-            margin-top: 24px;
-            padding-top: 16px;
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
           }
         }
 
         .error-message {
           display: none;
-          color: #ff4d4d;
+          color: var(--accent-error);
           font-size: 12px;
           margin-top: 4px;
         }

@@ -10,11 +10,41 @@ export class SettingsPanel extends HTMLElement {
       autoSave: true,
       fontSize: 'medium'
     };
+    this.loadSettings();
   }
 
   connectedCallback() {
     this.render();
     this.setupEventListeners();
+  }
+
+  loadSettings() {
+    const savedSettings = localStorage.getItem('appSettings');
+    if (savedSettings) {
+      this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+      this.applySettings();
+    }
+  }
+
+  applySettings() {
+    // Apply theme
+    document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : 'light');
+    
+    // Apply font size
+    document.documentElement.style.setProperty('--font-size-base', this.getFontSizeValue());
+  }
+
+  getFontSizeValue() {
+    switch (this.settings.fontSize) {
+      case 'small':
+        return '14px';
+      case 'medium':
+        return '16px';
+      case 'large':
+        return '18px';
+      default:
+        return '16px';
+    }
   }
 
   render() {
@@ -23,7 +53,7 @@ export class SettingsPanel extends HTMLElement {
         :host {
           display: block;
           width: 100%;
-          color: #ffffff;
+          color: var(--text-primary);
         }
 
         .settings {
@@ -32,19 +62,19 @@ export class SettingsPanel extends HTMLElement {
         }
 
         .card {
-          background: #1a1a1a;
+          background: var(--card-background);
           border-radius: 12px;
           padding: 24px;
           margin-bottom: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--border-color);
         }
 
         .card-title {
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 24px;
-          color: white;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          color: var(--text-primary);
+          border-bottom: 1px solid var(--border-color);
           padding-bottom: 12px;
         }
 
@@ -57,7 +87,7 @@ export class SettingsPanel extends HTMLElement {
           justify-content: space-between;
           align-items: center;
           padding: 12px 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          border-bottom: 1px solid var(--border-color);
         }
 
         .setting-label {
@@ -67,7 +97,7 @@ export class SettingsPanel extends HTMLElement {
 
         .setting-description {
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-secondary);
           margin-top: 4px;
         }
 
@@ -91,7 +121,7 @@ export class SettingsPanel extends HTMLElement {
           left: 0;
           right: 0;
           bottom: 0;
-          background-color: rgba(255, 255, 255, 0.2);
+          background-color: var(--button-secondary-bg);
           transition: .3s;
           border-radius: 28px;
         }
@@ -103,13 +133,13 @@ export class SettingsPanel extends HTMLElement {
           width: 20px;
           left: 4px;
           bottom: 4px;
-          background-color: white;
+          background-color: var(--text-primary);
           transition: .3s;
           border-radius: 50%;
         }
 
         input:checked + .toggle-slider {
-          background-color: #6366f1;
+          background-color: var(--button-primary-bg);
         }
 
         input:checked + .toggle-slider:before {
@@ -117,9 +147,9 @@ export class SettingsPanel extends HTMLElement {
         }
 
         select {
-          background: #252525;
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: var(--input-background);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
           padding: 8px 12px;
           border-radius: 6px;
           font-size: 14px;
@@ -207,6 +237,19 @@ export class SettingsPanel extends HTMLElement {
     resetButton.addEventListener('click', () => {
       this.resetSettings();
     });
+
+    // Add change listeners for immediate feedback
+    const darkModeToggle = this.shadowRoot.querySelector('#dark-mode');
+    darkModeToggle.addEventListener('change', () => {
+      this.settings.darkMode = darkModeToggle.checked;
+      this.applySettings();
+    });
+
+    const fontSizeSelect = this.shadowRoot.querySelector('#font-size');
+    fontSizeSelect.addEventListener('change', () => {
+      this.settings.fontSize = fontSizeSelect.value;
+      this.applySettings();
+    });
   }
 
   saveSettings() {
@@ -216,8 +259,11 @@ export class SettingsPanel extends HTMLElement {
     this.settings.autoSave = this.shadowRoot.querySelector('#auto-save').checked;
     this.settings.fontSize = this.shadowRoot.querySelector('#font-size').value;
     
-    // In a real app, we would save to localStorage or an API
-    console.log('Settings saved:', this.settings);
+    // Save to localStorage
+    localStorage.setItem('appSettings', JSON.stringify(this.settings));
+    
+    // Apply settings
+    this.applySettings();
     
     // Show a success message
     this.showSaveConfirmation();
@@ -231,6 +277,12 @@ export class SettingsPanel extends HTMLElement {
       autoSave: true,
       fontSize: 'medium'
     };
+    
+    // Save to localStorage
+    localStorage.setItem('appSettings', JSON.stringify(this.settings));
+    
+    // Apply settings
+    this.applySettings();
     
     // Re-render with new settings
     this.render();

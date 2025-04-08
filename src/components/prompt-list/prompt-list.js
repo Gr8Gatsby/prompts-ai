@@ -45,8 +45,8 @@ class PromptList extends HTMLElement {
         }
 
         .create-button {
-          background: #6366f1;
-          color: white;
+          background: var(--button-primary-bg);
+          color: var(--text-primary);
           height: 44px;
           padding: 0 24px;
           border-radius: 12px;
@@ -65,19 +65,19 @@ class PromptList extends HTMLElement {
           border: none;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+          box-shadow: var(--shadow-sm);
         }
 
         .create-button:hover {
-          background: #818cf8;
+          background: var(--button-primary-hover);
           transform: translateY(-1px);
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+          box-shadow: var(--shadow-md);
         }
 
         .create-button:active {
-          background: #4f46e5;
+          background: var(--button-primary-active);
           transform: translateY(0);
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          box-shadow: var(--shadow-sm);
         }
 
         .prompts {
@@ -87,12 +87,12 @@ class PromptList extends HTMLElement {
         }
 
         .prompt-card {
-          background: #1a1a1a;
-          border-radius: 12px;
+          background: var(--card-background);
+          border-radius: var(--card-border-radius);
           padding: 20px;
           cursor: pointer;
           transition: all 0.2s ease;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--border-color);
           height: 100%;
           display: flex;
           flex-direction: column;
@@ -100,21 +100,21 @@ class PromptList extends HTMLElement {
         
         .prompt-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-          border-color: rgba(255, 255, 255, 0.15);
+          box-shadow: var(--shadow-lg);
+          border-color: var(--border-color);
         }
         
         .prompt-title {
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 12px;
-          color: white;
+          color: var(--text-primary);
         }
         
         .prompt-preview {
           font-size: 14px;
           margin-bottom: 16px;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-secondary);
           line-height: 1.5;
           flex-grow: 1;
           display: -webkit-box;
@@ -131,8 +131,8 @@ class PromptList extends HTMLElement {
         }
         
         .tag {
-          background: rgba(99, 102, 241, 0.2);
-          color: rgba(255, 255, 255, 0.9);
+          background: var(--button-secondary-bg);
+          color: var(--text-primary);
           padding: 4px 10px;
           border-radius: 6px;
           font-size: 12px;
@@ -209,19 +209,18 @@ class PromptList extends HTMLElement {
   setupEventListeners() {
     const createButton = this.shadowRoot.querySelector('.create-button');
     createButton.addEventListener('click', () => {
-      window.history.pushState({}, '', '/prompts/new');
+      window.history.pushState({}, '', '/editor');
       window.dispatchEvent(new CustomEvent('route-changed', {
-        detail: { path: '/prompts/new' }
+        detail: { path: '/editor' }
       }));
     });
 
     this.shadowRoot.querySelectorAll('.prompt-card').forEach(card => {
       card.addEventListener('click', (e) => {
         const promptId = e.currentTarget.dataset.id;
-        document.dispatchEvent(new CustomEvent('edit-prompt', {
-          detail: { promptId },
-          bubbles: true,
-          composed: true
+        window.history.pushState({}, '', `/editor?id=${promptId}`);
+        window.dispatchEvent(new CustomEvent('route-changed', {
+          detail: { path: `/editor?id=${promptId}` }
         }));
       });
     });
