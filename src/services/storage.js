@@ -36,7 +36,51 @@ export class StorageService {
    */
   async initializeDB() {
     if (this.isTest) {
-      return Promise.resolve();
+      // In test mode, we should still properly initialize the database
+      if (this.initPromise) {
+        return this.initPromise;
+      }
+
+      this.initPromise = new Promise((resolve, reject) => {
+        try {
+          const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+
+          request.onerror = (event) => {
+            reject(event.target.error);
+          };
+
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+
+            if (!db.objectStoreNames.contains('prompts')) {
+              const promptStore = db.createObjectStore('prompts', { keyPath: 'id', autoIncrement: true });
+              promptStore.createIndex('title', 'title', { unique: false });
+              promptStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
+              promptStore.createIndex('createdAt', 'createdAt', { unique: false });
+            }
+
+            if (!db.objectStoreNames.contains('files')) {
+              const fileStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+              fileStore.createIndex('promptId', 'promptId', { unique: false });
+              fileStore.createIndex('type', 'type', { unique: false });
+            }
+
+            if (!db.objectStoreNames.contains('examples')) {
+              const exampleStore = db.createObjectStore('examples', { keyPath: 'id', autoIncrement: true });
+              exampleStore.createIndex('promptId', 'promptId', { unique: false });
+            }
+          };
+
+          request.onsuccess = (event) => {
+            this.db = event.target.result;
+            resolve();
+          };
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+      return this.initPromise;
     }
 
     if (this.initPromise) {
