@@ -83,8 +83,8 @@ describe('app-shell', () => {
     // Wait for initial render and updateVisibleSection to complete
     await new Promise(resolve => setTimeout(resolve, 0));
     
-    const promptsList = element.shadowRoot.querySelector('#prompts-list');
-    const promptEditor = element.shadowRoot.querySelector('#prompt-editor');
+    const promptsList = element.shadowRoot.querySelector('#prompts');
+    const promptEditor = element.shadowRoot.querySelector('#editor');
     
     expect(promptsList).toBeTruthy();
     expect(promptEditor).toBeTruthy();
@@ -93,7 +93,7 @@ describe('app-shell', () => {
     if (window.location.pathname === '/prompts' || window.location.pathname === '/') {
       expect(promptsList.getAttribute('aria-current')).toBe('page');
       expect(promptEditor.getAttribute('aria-current')).toBe('false');
-    } else if (window.location.pathname === '/prompts/new') {
+    } else if (window.location.pathname === '/editor') {
       expect(promptsList.getAttribute('aria-current')).toBe('false');
       expect(promptEditor.getAttribute('aria-current')).toBe('page');
     }
@@ -102,11 +102,11 @@ describe('app-shell', () => {
   it('should update section visibility on route change', () => {
     // Trigger route change
     window.dispatchEvent(new CustomEvent('route-changed', {
-      detail: { path: '/prompts/new' }
+      detail: { path: '/editor' }
     }));
 
-    const promptsList = element.shadowRoot.querySelector('#prompts-list');
-    const promptEditor = element.shadowRoot.querySelector('#prompt-editor');
+    const promptsList = element.shadowRoot.querySelector('#prompts');
+    const promptEditor = element.shadowRoot.querySelector('#editor');
     
     expect(promptsList.getAttribute('aria-current')).toBe('false');
     expect(promptEditor.getAttribute('aria-current')).toBe('page');

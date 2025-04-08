@@ -1,6 +1,7 @@
 // Import only the components we have implemented so far
 import '../prompt-list/prompt-list.js';
 import '../prompt-editor/prompt-editor.js';
+import '../settings-panel/settings-panel.js';
 
 export class AppRouter extends HTMLElement {
   constructor() {
@@ -52,6 +53,11 @@ export class AppRouter extends HTMLElement {
 
     document.addEventListener('cancel-edit', () => {
       this.navigateTo('/prompts');
+    });
+
+    // Handle route changes from navigation component
+    window.addEventListener('route-changed', (e) => {
+      this.navigateTo(e.detail.path);
     });
 
     // Handle browser navigation
