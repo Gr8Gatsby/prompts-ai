@@ -391,26 +391,27 @@ export class StorageService {
 
   /**
    * Delete a prompt and its associated data
-   * @param {number} id - The prompt ID
+   * @param {number} promptId - The ID of the prompt to delete
    * @returns {Promise<void>}
    */
-  async deletePrompt(id) {
+  async deletePrompt(promptId) {
     if (this.isTest) {
-      if (!this.memoryStorage.prompts.has(id)) {
-        throw new Error('Prompt not found');
-      }
-      this.memoryStorage.prompts.delete(id);
-      // Delete associated files and examples
+      this.memoryStorage.prompts.delete(promptId);
+      
+      // Delete associated files
       for (const [fileId, file] of this.memoryStorage.files.entries()) {
-        if (file.promptId === id) {
+        if (file.promptId === promptId) {
           this.memoryStorage.files.delete(fileId);
         }
       }
+      
+      // Delete associated examples
       for (const [exampleId, example] of this.memoryStorage.examples.entries()) {
-        if (example.promptId === id) {
+        if (example.promptId === promptId) {
           this.memoryStorage.examples.delete(exampleId);
         }
       }
+      
       return;
     }
 
@@ -422,17 +423,24 @@ export class StorageService {
     const exampleStore = transaction.objectStore('examples');
 
     try {
-      // Delete associated files
-      const fileIndex = fileStore.index('promptId');
-      const fileKeys = await new Promise((resolve, reject) => {
-        const request = fileIndex.getAllKeys(id);
-        request.onsuccess = () => resolve(request.result);
+      // Delete the prompt
+      await new Promise((resolve, reject) => {
+        const request = promptStore.delete(Number(promptId));
+        request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
 
-      for (const key of fileKeys) {
+      // Delete associated files
+      const fileIndex = fileStore.index('promptId');
+      const fileRequest = fileIndex.getAllKeys(promptId);
+      const fileIds = await new Promise((resolve, reject) => {
+        fileRequest.onsuccess = () => resolve(fileRequest.result);
+        fileRequest.onerror = () => reject(fileRequest.error);
+      });
+
+      for (const fileId of fileIds) {
         await new Promise((resolve, reject) => {
-          const request = fileStore.delete(key);
+          const request = fileStore.delete(fileId);
           request.onsuccess = () => resolve();
           request.onerror = () => reject(request.error);
         });
@@ -440,29 +448,26 @@ export class StorageService {
 
       // Delete associated examples
       const exampleIndex = exampleStore.index('promptId');
-      const exampleKeys = await new Promise((resolve, reject) => {
-        const request = exampleIndex.getAllKeys(id);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+      const exampleRequest = exampleIndex.getAllKeys(promptId);
+      const exampleIds = await new Promise((resolve, reject) => {
+        exampleRequest.onsuccess = () => resolve(exampleRequest.result);
+        exampleRequest.onerror = () => reject(exampleRequest.error);
       });
 
-      for (const key of exampleKeys) {
+      for (const exampleId of exampleIds) {
         await new Promise((resolve, reject) => {
-          const request = exampleStore.delete(key);
+          const request = exampleStore.delete(exampleId);
           request.onsuccess = () => resolve();
           request.onerror = () => reject(request.error);
         });
       }
 
-      // Delete the prompt
       await new Promise((resolve, reject) => {
-        const request = promptStore.delete(id);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
       });
     } catch (error) {
       this.logError('Failed to delete prompt:', error);
-      transaction.abort();
       throw error;
     }
   }
@@ -546,13 +551,8 @@ export class StorageService {
   /**
    * Ensure database is initialized
    * @private
-   * @returns {Promise<void>}
    */
   async ensureDB() {
-    if (this.isTest) {
-      return Promise.resolve();
-    }
-
     if (!this.db) {
       await this.initializeDB();
     }

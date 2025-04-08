@@ -13,8 +13,13 @@ describe('prompt-list', () => {
   let element;
   let storageService;
   let originalLocation;
+  let originalConsoleError;
 
   beforeEach(async () => {
+    // Mock console.error
+    originalConsoleError = console.error;
+    console.error = vi.fn();
+
     // Save original location
     originalLocation = window.location;
 
@@ -38,6 +43,8 @@ describe('prompt-list', () => {
     vi.clearAllMocks();
     // Restore original location
     window.location = originalLocation;
+    // Restore console.error
+    console.error = originalConsoleError;
   });
 
   it('should render the list container and create button', () => {
