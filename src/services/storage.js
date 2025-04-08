@@ -171,6 +171,9 @@ export class StorageService {
         examples: [] // Store example references
       };
       
+      // Remove any existing id field to let IndexedDB generate it
+      delete promptData.id;
+      
       const promptId = await new Promise((resolve, reject) => {
         const request = promptStore.add(promptData);
         request.onsuccess = () => resolve(request.result);

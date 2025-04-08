@@ -1,16 +1,42 @@
 import '../navigation/navigation.js';
-import '../router/router.js';
+import '../prompt-list/prompt-list.js';
+import '../prompt-editor/prompt-editor.js';
 
 export class AppShell extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this.style.display = 'grid';
-    this.style.gridTemplateRows = 'auto 1fr';
-    this.style.minHeight = '100vh';
-    this.style.backgroundColor = 'var(--background-color, #f5f5f5)';
-    this.style.color = 'var(--text-color, #333333)';
+    this.currentPath = window.location.pathname || '/prompts';
     this.render();
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    // Listen for route changes
+    window.addEventListener('route-changed', (e) => {
+      this.currentPath = e.detail.path;
+      this.updateVisibleSection();
+    });
+  }
+
+  updateVisibleSection() {
+    const sections = this.shadowRoot.querySelectorAll('section');
+    sections.forEach(section => {
+      section.setAttribute('aria-current', 'false');
+      section.style.display = 'none';
+    });
+
+    let currentSection;
+    if (this.currentPath === '/prompts') {
+      currentSection = this.shadowRoot.querySelector('#prompts-list');
+    } else if (this.currentPath === '/prompts/new') {
+      currentSection = this.shadowRoot.querySelector('#prompt-editor');
+    }
+
+    if (currentSection) {
+      currentSection.setAttribute('aria-current', 'page');
+      currentSection.style.display = 'block';
+    }
   }
 
   render() {
@@ -21,7 +47,9 @@ export class AppShell extends HTMLElement {
           height: 100%;
           width: 100%;
           display: grid;
-          grid-template-rows: auto 1fr;
+          grid-template-rows: var(--header-height) 1fr;
+          background: #121212;
+          color: #ffffff;
         }
 
         header {
@@ -29,35 +57,64 @@ export class AppShell extends HTMLElement {
           padding: 0;
           position: sticky;
           top: 0;
-          z-index: 100;
+          z-index: var(--z-index-sticky);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        main.main-content {
-          padding: 24px;
+        main {
+          padding: var(--spacing-lg);
           width: 100%;
           box-sizing: border-box;
           overflow-y: auto;
+          background: #121212;
+        }
+
+        section {
+          display: none;
+          height: 100%;
+        }
+
+        section[aria-current="page"] {
+          display: block;
+        }
+
+        h1 {
+          margin: 0 0 var(--spacing-lg) 0;
+          font-size: var(--font-size-xl);
+          font-weight: var(--font-weight-semibold);
+          letter-spacing: -0.01em;
+          color: rgba(255, 255, 255, 0.95);
         }
 
         @media (max-width: 767px) {
-          main.main-content {
-            padding: 16px;
+          main {
+            padding: var(--spacing-md);
           }
-        }
 
-        @media (prefers-color-scheme: dark) {
-          header {
-            background: #000000;
+          h1 {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-md);
           }
         }
       </style>
+
       <header role="banner">
         <app-navigation></app-navigation>
       </header>
-      <main role="main" class="main-content">
-        <app-router></app-router>
+
+      <main role="main">
+        <section id="prompts-list" aria-labelledby="prompts-heading" aria-current="page">
+          <prompt-list></prompt-list>
+        </section>
+
+        <section id="prompt-editor" aria-labelledby="new-prompt-heading">
+          <prompt-editor></prompt-editor>
+        </section>
       </main>
     `;
+
+    // Set initial section visibility
+    this.updateVisibleSection();
   }
 }
 

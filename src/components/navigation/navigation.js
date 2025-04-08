@@ -16,133 +16,125 @@ export class AppNavigation extends HTMLElement {
       <style>
         :host {
           display: block;
+          width: 100%;
+          background: var(--secondary-background);
+          border-bottom: 1px solid var(--border-color);
         }
 
         nav {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          height: var(--header-height);
+          padding: 0 var(--spacing-lg);
+          max-width: var(--container-max-width);
+          margin: 0 auto;
+          gap: var(--spacing-md);
+        }
+
+        a {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-sm);
+          padding: var(--spacing-sm) var(--spacing-md);
+          color: var(--text-secondary);
+          text-decoration: none;
+          border-radius: var(--border-radius-md);
+          font-size: var(--font-size-sm);
+          font-weight: var(--font-weight-medium);
+          transition: color var(--transition-normal), background-color var(--transition-normal);
+        }
+
+        a:hover {
+          color: var(--text-primary);
+          background-color: var(--hover-overlay);
+        }
+
+        a[aria-current="page"] {
+          color: var(--text-primary);
+          background-color: var(--active-overlay);
+        }
+
+        svg {
+          width: 20px;
+          height: 20px;
+          fill: currentColor;
         }
 
         .menu-button {
           display: none;
+          padding: var(--spacing-sm);
           background: none;
           border: none;
-          color: inherit;
+          color: var(--text-primary);
           cursor: pointer;
-          padding: 0.5rem;
-        }
-
-        .menu-button svg {
-          width: 24px;
-          height: 24px;
-        }
-
-        .nav-links {
-          display: flex;
-          gap: 1rem;
-          list-style: none;
-          margin: 0;
-          padding: 0;
-        }
-
-        .nav-links a {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          color: inherit;
-          text-decoration: none;
-          border-radius: 6px;
-          transition: background-color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-          background-color: var(--hover-color, rgba(0, 0, 0, 0.05));
-        }
-
-        .nav-links a[aria-current="page"] {
-          background-color: var(--active-color, rgba(0, 0, 0, 0.08));
-        }
-
-        .nav-links a svg {
-          width: 20px;
-          height: 20px;
         }
 
         @media (max-width: 767px) {
+          nav {
+            padding: 0 var(--spacing-md);
+          }
+
           .menu-button {
             display: block;
           }
 
-          nav.visible .nav-links {
-            display: flex;
-            position: absolute;
-            top: 100%;
+          nav {
+            position: fixed;
+            top: var(--header-height);
             left: 0;
             right: 0;
-            background-color: var(--header-background, #ffffff);
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            bottom: 0;
             flex-direction: column;
+            align-items: stretch;
+            background: var(--secondary-background);
+            padding: var(--spacing-md);
+            transform: translateX(-100%);
+            transition: transform var(--transition-slow);
+            z-index: var(--z-index-fixed);
           }
 
-          .nav-links {
-            display: none;
-          }
-        }
-
-        @media (prefers-color-scheme: dark) {
-          .nav-links a:hover {
-            --hover-color: rgba(255, 255, 255, 0.05);
+          nav.visible {
+            transform: translateX(0);
           }
 
-          .nav-links a[aria-current="page"] {
-            --active-color: rgba(255, 255, 255, 0.08);
+          a {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
           }
         }
       </style>
+
+      <button class="menu-button" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+
       <nav>
-        <button class="menu-button" aria-label="Toggle menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12h18M3 6h18M3 18h18"/>
+        <a href="/prompts" aria-current="page">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
           </svg>
-        </button>
-        <ul class="nav-links">
-          <li>
-            <a href="/prompts" aria-current="${this.currentPath === '/prompts' ? 'page' : 'false'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              Prompts
-            </a>
-          </li>
-          <li>
-            <a href="/analytics" aria-current="${this.currentPath === '/analytics' ? 'page' : 'false'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-              </svg>
-              Analytics
-            </a>
-          </li>
-          <li>
-            <a href="/testing" aria-current="${this.currentPath === '/testing' ? 'page' : 'false'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-              Testing
-            </a>
-          </li>
-          <li>
-            <a href="/settings" aria-current="${this.currentPath === '/settings' ? 'page' : 'false'}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              Settings
-            </a>
-          </li>
-        </ul>
+          Prompts
+        </a>
+        <a href="/analytics">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+          </svg>
+          Analytics
+        </a>
+        <a href="/testing">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"/>
+          </svg>
+          Testing
+        </a>
+        <a href="/settings">
+          <svg viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+          Settings
+        </a>
       </nav>
     `;
   }
@@ -167,18 +159,32 @@ export class AppNavigation extends HTMLElement {
     });
 
     // Setup navigation links
-    const links = this.shadowRoot.querySelectorAll('.nav-links a');
+    const links = this.shadowRoot.querySelectorAll('nav a');
     links.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const href = link.getAttribute('href');
         window.history.pushState({}, '', href);
         this.updateActiveLink();
+        
+        // Dispatch a custom event for route changes
+        window.dispatchEvent(new CustomEvent('route-changed', {
+          detail: { path: href }
+        }));
+
         if (this.isMobile) {
           this.isMenuOpen = false;
           this.updateMenuVisibility();
         }
       });
+    });
+
+    // Listen for popstate events (browser back/forward)
+    window.addEventListener('popstate', () => {
+      this.updateActiveLink();
+      window.dispatchEvent(new CustomEvent('route-changed', {
+        detail: { path: window.location.pathname }
+      }));
     });
 
     // Close menu when clicking outside
@@ -204,7 +210,7 @@ export class AppNavigation extends HTMLElement {
   }
 
   updateActiveLink() {
-    const links = this.shadowRoot.querySelectorAll('.nav-links a');
+    const links = this.shadowRoot.querySelectorAll('nav a');
     const currentPath = window.location.pathname || '/prompts';
     
     links.forEach(link => {
