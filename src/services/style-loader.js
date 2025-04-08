@@ -14,8 +14,8 @@ export class StyleLoader {
         height: 44px;
         padding: 0 24px;
         border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-semibold);
         cursor: pointer;
         transition: all 0.2s ease;
         display: inline-flex;
@@ -32,52 +32,52 @@ export class StyleLoader {
       }
 
       .btn-primary {
-        background: #6366f1;
+        background: var(--button-primary-bg);
         color: white;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
       }
 
       .btn-primary:hover:not(:disabled) {
-        background: #818cf8;
+        background: var(--button-primary-hover);
         transform: translateY(-1px);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
       }
 
       .btn-primary:active:not(:disabled) {
-        background: #4f46e5;
+        background: var(--button-primary-active);
         transform: translateY(0);
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
 
       .btn-secondary {
-        background: rgba(255, 255, 255, 0.05);
-        color: #ffffff;
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--button-secondary-bg);
+        color: var(--text-primary);
+        border: 2px solid var(--button-secondary-border);
       }
 
       .btn-secondary:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: var(--button-secondary-hover);
+        border-color: var(--button-secondary-border-hover);
         transform: translateY(-1px);
       }
 
       .btn-secondary:active:not(:disabled) {
         transform: translateY(0);
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--button-secondary-bg);
       }
 
       .btn-small {
         height: 36px;
         padding: 0 16px;
         min-width: 80px;
-        font-size: 14px;
+        font-size: var(--font-size-sm);
       }
 
       .btn-large {
         height: 48px;
         padding: 0 32px;
         min-width: 140px;
-        font-size: 18px;
+        font-size: var(--font-size-lg);
       }
 
       .btn:disabled {

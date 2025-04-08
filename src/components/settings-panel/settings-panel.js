@@ -62,8 +62,8 @@ export class SettingsPanel extends BaseComponent {
         }
 
         .card-title {
-          font-size: 18px;
-          font-weight: 600;
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-semibold);
           margin-bottom: 24px;
           color: var(--text-primary);
           border-bottom: 1px solid var(--border-color);
@@ -83,12 +83,12 @@ export class SettingsPanel extends BaseComponent {
         }
 
         .setting-label {
-          font-size: 16px;
-          font-weight: 500;
+          font-size: var(--font-size-md);
+          font-weight: var(--font-weight-medium);
         }
 
         .setting-description {
-          font-size: 14px;
+          font-size: var(--font-size-sm);
           color: var(--text-secondary);
           margin-top: 4px;
         }
@@ -144,7 +144,7 @@ export class SettingsPanel extends BaseComponent {
           border: 1px solid var(--border-color);
           padding: 8px 12px;
           border-radius: 6px;
-          font-size: 14px;
+          font-size: var(--font-size-sm);
           min-width: 120px;
         }
 
