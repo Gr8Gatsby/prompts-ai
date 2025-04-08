@@ -156,6 +156,7 @@ class PromptEditor extends HTMLElement {
     // Cancel button
     cancelButton.addEventListener('click', () => {
       this.prompt = { title: '', content: '', tags: [] };
+      this.render(); // Re-render to update the form
       window.history.pushState({}, '', '/prompts');
       window.dispatchEvent(new CustomEvent('route-changed', {
         detail: { path: '/prompts' }
@@ -470,11 +471,7 @@ class PromptEditor extends HTMLElement {
             <label>Tags</label>
             <div class="tags-input">
               ${this.prompt?.tags.map(tag => `
-                <span class="tag">
-                  ${this.escapeHtml(tag)}
-                  <button type="button" class="tag-remove" data-tag="${this.escapeHtml(tag)}" aria-label="Remove tag">×</button>
-                </span>
-              `).join('')}
+                <span class="tag">${this.escapeHtml(tag)}<button type="button" class="tag-remove" data-tag="${this.escapeHtml(tag)}" aria-label="Remove tag">×</button></span>`).join('')}
               <input type="text" class="tag-input" placeholder="Add tag...">
             </div>
           </div>

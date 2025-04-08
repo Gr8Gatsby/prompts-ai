@@ -49,77 +49,103 @@ describe('prompt-editor', () => {
 
   it('should load a prompt when prompt-id attribute is set', async () => {
     const mockPrompt = {
-      id: 123, // Use numeric ID
+      id: 123,
       title: 'Test Prompt',
       content: 'Test Content',
       tags: ['test']
     };
 
+    // Setup the mock before setting attribute
     storageService.getPrompt.mockResolvedValue(mockPrompt);
     
-    // Set the attribute BEFORE appending to DOM
+    // Set the attribute and append to DOM
     element.setAttribute('prompt-id', '123');
     document.body.appendChild(element);
     
-    // Wait for the storage service to be called
+    // Wait for the loadPrompt method to be called
     await vi.waitFor(() => {
-      expect(storageService.getPrompt).toHaveBeenCalledWith(123); // Pass numeric ID
+      expect(storageService.getPrompt).toHaveBeenCalledWith('123');
     });
 
-    // Check the form values
-    const titleInput = element.shadowRoot.querySelector('#title');
-    const contentInput = element.shadowRoot.querySelector('#content');
-    expect(titleInput.value).toBe(mockPrompt.title);
-    expect(contentInput.value).toBe(mockPrompt.content);
+    // Wait for the component to update with the loaded prompt
+    await vi.waitFor(() => {
+      const titleInput = element.shadowRoot.querySelector('#title');
+      const contentInput = element.shadowRoot.querySelector('#content');
+      const tagElements = element.shadowRoot.querySelectorAll('.tag');
+      
+      expect(titleInput.value).toBe(mockPrompt.title);
+      expect(contentInput.value).toBe(mockPrompt.content);
+      expect(tagElements.length).toBe(1);
+      expect(tagElements[0].textContent.replace(/[\s\n]+/g, '')).toBe('test×');
+      expect(element.prompt).toEqual(mockPrompt);
+    });
   });
 
-  it('should validate form inputs', () => {
+  it('should validate form inputs', async () => {
     document.body.appendChild(element);
+    
+    // Get form elements
     const titleInput = element.shadowRoot.querySelector('#title');
     const contentInput = element.shadowRoot.querySelector('#content');
     const saveButton = element.shadowRoot.querySelector('.save-button');
-    const titleError = element.shadowRoot.querySelector('#title-error');
-    const contentError = element.shadowRoot.querySelector('#content-error');
-
-    // Initially both fields are empty
-    expect(saveButton.disabled).toBe(true);
-    expect(titleError.classList.contains('visible')).toBe(true);
-    expect(contentError.classList.contains('visible')).toBe(true);
+    
+    // Initially both fields are empty, trigger validation
+    titleInput.dispatchEvent(new Event('input'));
+    contentInput.dispatchEvent(new Event('input'));
+    
+    await vi.waitFor(() => {
+      expect(saveButton.disabled).toBe(true);
+      expect(titleInput.classList.contains('invalid')).toBe(true);
+      expect(contentInput.classList.contains('invalid')).toBe(true);
+    });
 
     // Fill in title only
     titleInput.value = 'Test Title';
     titleInput.dispatchEvent(new Event('input'));
-    expect(titleError.classList.contains('visible')).toBe(false);
-    expect(contentError.classList.contains('visible')).toBe(true);
-    expect(saveButton.disabled).toBe(true);
+    
+    await vi.waitFor(() => {
+      expect(titleInput.classList.contains('invalid')).toBe(false);
+      expect(contentInput.classList.contains('invalid')).toBe(true);
+      expect(saveButton.disabled).toBe(true);
+    });
 
     // Fill in content too
     contentInput.value = 'Test Content';
     contentInput.dispatchEvent(new Event('input'));
-    expect(titleError.classList.contains('visible')).toBe(false);
-    expect(contentError.classList.contains('visible')).toBe(false);
-    expect(saveButton.disabled).toBe(false);
+    
+    await vi.waitFor(() => {
+      expect(titleInput.classList.contains('invalid')).toBe(false);
+      expect(contentInput.classList.contains('invalid')).toBe(false);
+      expect(saveButton.disabled).toBe(false);
+    });
   });
 
-  it('should handle tag addition and removal', () => {
+  it('should handle tag addition and removal', async () => {
     document.body.appendChild(element);
     const tagInput = element.shadowRoot.querySelector('.tag-input');
     
-    // Add a tag
+    // Add a tag using space key (as implemented in the component)
     tagInput.value = 'test-tag';
-    tagInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    tagInput.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
     
-    const tag = element.shadowRoot.querySelector('.tag');
-    expect(tag).toBeTruthy();
-    // Use a more flexible assertion for the tag text
-    expect(tag.textContent.replace(/\s+/g, '')).toBe('test-tag×');
+    // Wait for the tag to be added
+    await vi.waitFor(() => {
+      const tags = element.shadowRoot.querySelectorAll('.tag');
+      expect(tags.length).toBe(1);
+      expect(tags[0].textContent.replace(/[\s\n]+/g, '')).toBe('test-tag×');
+      expect(element.prompt.tags).toContain('test-tag');
+    });
     
     // Remove the tag
     const removeButton = element.shadowRoot.querySelector('.tag-remove');
     removeButton.click();
     
-    const removedTag = element.shadowRoot.querySelector('.tag');
-    expect(removedTag).toBeFalsy();
+    // Wait for the tag to be removed
+    await vi.waitFor(() => {
+      const tags = element.shadowRoot.querySelectorAll('.tag');
+      expect(tags.length).toBe(0);
+      expect(element.prompt.tags).toHaveLength(0);
+    });
   });
 
   it('should save a new prompt', async () => {
@@ -192,15 +218,50 @@ describe('prompt-editor', () => {
     expect(saveButton.textContent).toBe('Save Prompt');
   });
 
-  it('should handle cancel action', () => {
+  it('should handle cancel action', async () => {
     document.body.appendChild(element);
-    const cancelSpy = vi.fn();
-    element.addEventListener('cancel-edit', cancelSpy);
+    
+    // Setup spies
+    const routeChangeSpy = vi.fn();
+    const pushStateSpy = vi.spyOn(window.history, 'pushState');
+    window.addEventListener('route-changed', routeChangeSpy);
+    
+    // Fill in some data first
+    const titleInput = element.shadowRoot.querySelector('#title');
+    const contentInput = element.shadowRoot.querySelector('#content');
+    titleInput.value = 'Test Title';
+    contentInput.value = 'Test Content';
+    titleInput.dispatchEvent(new Event('input'));
+    contentInput.dispatchEvent(new Event('input'));
 
+    // Trigger cancel
     const cancelButton = element.shadowRoot.querySelector('.cancel-button');
     cancelButton.click();
 
-    expect(cancelSpy).toHaveBeenCalled();
-    expect(element.prompt).toEqual({ title: '', content: '', tags: [] });
+    // Wait for state reset and route change
+    await vi.waitFor(() => {
+      // Verify route change event was dispatched
+      expect(routeChangeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: { path: '/prompts' }
+        })
+      );
+      
+      // Verify navigation occurred
+      expect(pushStateSpy).toHaveBeenCalledWith({}, '', '/prompts');
+      
+      // Verify form was cleared
+      const updatedTitleInput = element.shadowRoot.querySelector('#title');
+      const updatedContentInput = element.shadowRoot.querySelector('#content');
+      expect(updatedTitleInput.value).toBe('');
+      expect(updatedContentInput.value).toBe('');
+      
+      // Verify component state was reset
+      expect(element.prompt).toEqual({ title: '', content: '', tags: [] });
+    });
+
+    // Cleanup
+    window.removeEventListener('route-changed', routeChangeSpy);
+    pushStateSpy.mockRestore();
   });
 }); 

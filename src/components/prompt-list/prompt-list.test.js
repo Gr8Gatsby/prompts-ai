@@ -31,10 +31,10 @@ describe('prompt-list', () => {
   });
 
   it('should render the list container and create button', () => {
-    const container = element.shadowRoot.querySelector('.container');
+    const container = element.shadowRoot.querySelector('.prompt-list');
     const header = element.shadowRoot.querySelector('.header');
     const createButton = element.shadowRoot.querySelector('.create-button');
-    const promptsGrid = element.shadowRoot.querySelector('.prompts-grid');
+    const promptsGrid = element.shadowRoot.querySelector('.prompts');
     
     expect(container).toBeTruthy();
     expect(header).toBeTruthy();
