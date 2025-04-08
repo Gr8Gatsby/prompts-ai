@@ -26,15 +26,17 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['./test/setup.js'],
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    environmentMatchGlobs: [
-      ['src/**', 'happy-dom']
-    ],
-    environmentOptions: {
-      'happy-dom': {
-        globals: {
-          customElements: true,
-          HTMLElement: true,
-          CustomEvent: true
+    workspace: {
+      root: {
+        environment: 'happy-dom',
+        environmentOptions: {
+          'happy-dom': {
+            globals: {
+              customElements: true,
+              HTMLElement: true,
+              CustomEvent: true
+            }
+          }
         }
       }
     },
