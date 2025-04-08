@@ -344,52 +344,85 @@ class PromptEditor extends HTMLElement {
         .actions {
           display: flex;
           justify-content: flex-end;
-          gap: 12px;
-          margin-top: 32px;
-          padding-top: 24px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-          width: 100%;
+          gap: var(--spacing-md);
+          margin-top: var(--spacing-lg);
         }
 
         .save-button {
-          background: #4d9fff;
-          color: #ffffff;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 14px;
+          background: #6366f1;
+          color: white;
+          height: 44px;
+          padding: 0 24px;
+          border-radius: 12px;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          min-width: 100px;
           transition: all 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          white-space: nowrap;
+          text-decoration: none;
+          min-width: 120px;
+          letter-spacing: 0.01em;
+          border: none;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
         }
 
-        .save-button:hover {
-          background: #3d8fee;
+        .save-button:hover:not(:disabled) {
+          background: #818cf8;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .save-button:active:not(:disabled) {
+          background: #4f46e5;
+          transform: translateY(0);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .cancel-button {
+          background: rgba(255, 255, 255, 0.05);
+          color: #ffffff;
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          height: 44px;
+          padding: 0 24px;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          white-space: nowrap;
+          text-decoration: none;
+          min-width: 120px;
+          letter-spacing: 0.01em;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .cancel-button:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-1px);
+        }
+
+        .cancel-button:active:not(:disabled) {
+          transform: translateY(0);
+          background: rgba(255, 255, 255, 0.05);
         }
 
         .save-button:disabled {
           opacity: 0.5;
           cursor: not-allowed;
-          background: #4d9fff;
-        }
-
-        .cancel-button {
-          background: transparent;
-          color: rgba(255, 255, 255, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          min-width: 100px;
-          transition: all 0.2s ease;
-        }
-
-        .cancel-button:hover {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(255, 255, 255, 0.3);
+          transform: none !important;
+          box-shadow: none !important;
         }
 
         @media (max-width: 767px) {

@@ -82,9 +82,20 @@
   --input-focus-ring: 0 0 0 2px var(--accent-primary-alpha);
   
   /* Buttons */
-  --button-padding: var(--spacing-sm) var(--spacing-md);
-  --button-height: 36px;
-  --button-min-width: 80px;
+  --button-height: 44px;
+  --button-padding: 0 var(--spacing-lg);
+  --button-min-width: 120px;
+  --button-font-size: var(--font-size-md);
+  --button-radius: 12px;
+  
+  /* Button Colors */
+  --button-primary-bg: #6366f1;
+  --button-primary-hover: #818cf8;
+  --button-primary-active: #4f46e5;
+  --button-secondary-bg: rgba(255, 255, 255, 0.1);
+  --button-secondary-border: rgba(255, 255, 255, 0.2);
+  --button-secondary-hover: rgba(255, 255, 255, 0.15);
+  --button-secondary-border-hover: rgba(255, 255, 255, 0.3);
   
   /* Cards */
   --card-padding: var(--spacing-md);
@@ -118,8 +129,8 @@
     --text-tertiary: #636366;
     
     /* Interactive states */
-    --hover-overlay: rgba(255, 255, 255, 0.05);
-    --active-overlay: rgba(255, 255, 255, 0.1);
+    --hover-overlay: rgba(255, 255, 255, 0.1);
+    --active-overlay: rgba(255, 255, 255, 0.15);
     
     /* Border and shadow */
     --border-color: #3a3a3c;
@@ -131,6 +142,15 @@
     --success-alpha: rgba(48, 209, 88, 0.2);
     --warning-alpha: rgba(255, 159, 10, 0.2);
     --error-alpha: rgba(255, 69, 58, 0.2);
+
+    /* Button colors for dark theme */
+    --button-primary-bg: #818cf8;
+    --button-primary-hover: #a5b4fc;
+    --button-primary-active: #6366f1;
+    --button-secondary-bg: rgba(255, 255, 255, 0.05);
+    --button-secondary-border: rgba(255, 255, 255, 0.1);
+    --button-secondary-hover: rgba(255, 255, 255, 0.1);
+    --button-secondary-border-hover: rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -159,53 +179,6 @@ body {
 }
 
 /* Common component styles */
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--button-height);
-  min-width: var(--button-min-width);
-  padding: var(--button-padding);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  text-decoration: none;
-  cursor: pointer;
-  border: none;
-  transition: background-color var(--transition-normal), transform var(--transition-normal);
-}
-
-.button-primary {
-  background-color: var(--accent-primary);
-  color: white;
-}
-
-.button-primary:hover {
-  background-color: color-mix(in srgb, var(--accent-primary) 85%, black);
-}
-
-.button-secondary {
-  background-color: var(--accent-secondary);
-  color: white;
-}
-
-.button-secondary:hover {
-  background-color: color-mix(in srgb, var(--accent-secondary) 85%, black);
-}
-
-.card {
-  background-color: var(--card-background);
-  border-radius: var(--card-border-radius);
-  padding: var(--card-padding);
-  box-shadow: var(--card-shadow);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-}
-
-.card-hover:hover {
-  transform: var(--card-hover-transform);
-  box-shadow: var(--card-hover-shadow);
-}
-
 .input {
   height: var(--input-height);
   padding: var(--input-padding);
@@ -227,6 +200,19 @@ body {
   box-shadow: var(--input-focus-ring);
 }
 
+.card {
+  background-color: var(--card-background);
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card-hover:hover {
+  transform: var(--card-hover-transform);
+  box-shadow: var(--card-hover-shadow);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-column-width), 1fr));
@@ -245,5 +231,17 @@ body {
   .container,
   .content-container {
     padding: 0 var(--spacing-md);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Update accent colors for dark theme */
+    --accent-primary: #8e8eff;
+    --accent-secondary: #4d9fff;
+    
+    /* Update button overlays for dark theme */
+    --hover-overlay: rgba(255, 255, 255, 0.1);
+    --active-overlay: rgba(255, 255, 255, 0.15);
   }
 } 
