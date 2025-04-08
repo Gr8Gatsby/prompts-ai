@@ -1,4 +1,6 @@
-export class AppNavigation extends HTMLElement {
+import { BaseComponent } from '../base-component.js';
+
+export class AppNavigation extends BaseComponent {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });

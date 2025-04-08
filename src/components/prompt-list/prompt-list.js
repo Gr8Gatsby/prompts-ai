@@ -1,6 +1,7 @@
 import { StorageService } from '../../services/storage.js';
+import { BaseComponent } from '../base-component.js';
 
-class PromptList extends HTMLElement {
+export class PromptList extends BaseComponent {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -50,8 +51,8 @@ class PromptList extends HTMLElement {
           height: 44px;
           padding: 0 24px;
           border-radius: 12px;
-          font-size: 16px;
-          font-weight: 600;
+          font-size: var(--font-size-md);
+          font-weight: var(--font-weight-semibold);
           cursor: pointer;
           transition: all 0.2s ease;
           display: inline-flex;
@@ -105,17 +106,17 @@ class PromptList extends HTMLElement {
         }
         
         .prompt-title {
-          font-size: 18px;
-          font-weight: 600;
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-semibold);
           margin-bottom: 12px;
           color: var(--text-primary);
         }
         
         .prompt-preview {
-          font-size: 14px;
+          font-size: var(--font-size-sm);
           margin-bottom: 16px;
           color: var(--text-secondary);
-          line-height: 1.5;
+          line-height: var(--line-height-normal);
           flex-grow: 1;
           display: -webkit-box;
           -webkit-line-clamp: 3;
@@ -135,8 +136,8 @@ class PromptList extends HTMLElement {
           color: var(--text-primary);
           padding: 4px 10px;
           border-radius: 6px;
-          font-size: 12px;
-          font-weight: 500;
+          font-size: var(--font-size-xs);
+          font-weight: var(--font-weight-medium);
         }
 
         @media (max-width: 767px) {

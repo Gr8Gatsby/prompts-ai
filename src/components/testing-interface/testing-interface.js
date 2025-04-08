@@ -1,4 +1,6 @@
-export class TestingInterface extends HTMLElement {
+import { BaseComponent } from '../base-component.js';
+
+export class TestingInterface extends BaseComponent {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });

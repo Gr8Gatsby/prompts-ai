@@ -1,9 +1,10 @@
 import { StorageService } from '../../services/storage.js';
+import { BaseComponent } from '../base-component.js';
 
-class PromptEditor extends HTMLElement {
+export class PromptEditor extends BaseComponent {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    const shadowRoot = this.attachShadowAndInjectStyles();
     this.prompt = {
       title: '',
       content: '',
@@ -222,7 +223,7 @@ class PromptEditor extends HTMLElement {
         label {
           display: block;
           margin-bottom: 8px;
-          font-size: 14px;
+          font-size: var(--font-size-sm);
           font-weight: var(--font-weight-semibold);
           color: var(--text-primary);
           letter-spacing: 0.01em;
@@ -235,7 +236,7 @@ class PromptEditor extends HTMLElement {
           border: 1px solid var(--border-color);
           border-radius: var(--input-border-radius);
           padding: 12px;
-          font-size: 15px;
+          font-size: var(--font-size-md);
           transition: all 0.2s ease;
           box-sizing: border-box;
           display: block;

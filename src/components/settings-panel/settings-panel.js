@@ -1,9 +1,10 @@
 import { StyleLoader } from '../../services/style-loader.js';
+import { BaseComponent } from '../base-component.js';
 
-export class SettingsPanel extends HTMLElement {
+export class SettingsPanel extends BaseComponent {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    const shadowRoot = this.attachShadowAndInjectStyles();
     this.settings = {
       darkMode: true,
       notifications: true,
@@ -31,20 +32,11 @@ export class SettingsPanel extends HTMLElement {
     document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : 'light');
     
     // Apply font size
-    document.documentElement.style.setProperty('--font-size-base', this.getFontSizeValue());
+    document.documentElement.setAttribute('data-font-size', this.settings.fontSize);
   }
 
   getFontSizeValue() {
-    switch (this.settings.fontSize) {
-      case 'small':
-        return '14px';
-      case 'medium':
-        return '16px';
-      case 'large':
-        return '18px';
-      default:
-        return '16px';
-    }
+    return this.settings.fontSize;
   }
 
   render() {

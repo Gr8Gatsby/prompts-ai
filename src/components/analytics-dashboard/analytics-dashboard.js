@@ -1,6 +1,7 @@
 import { StyleLoader } from '../../services/style-loader.js';
+import { BaseComponent } from '../base-component.js';
 
-export class AnalyticsDashboard extends HTMLElement {
+export class AnalyticsDashboard extends BaseComponent {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });

@@ -18,9 +18,20 @@ export class AppShell extends HTMLElement {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
 
+    // Set initial font size from localStorage or default to medium
+    const savedFontSize = localStorage.getItem('font-size') || 'medium';
+    document.documentElement.setAttribute('data-font-size', savedFontSize);
+
     // Listen for theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
       document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    });
+
+    // Listen for font size changes
+    window.addEventListener('font-size-changed', (e) => {
+      const newSize = e.detail.size;
+      document.documentElement.setAttribute('data-font-size', newSize);
+      localStorage.setItem('font-size', newSize);
     });
   }
 
