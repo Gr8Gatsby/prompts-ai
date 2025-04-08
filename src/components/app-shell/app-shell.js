@@ -8,8 +8,20 @@ export class AppShell extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.currentPath = window.location.pathname || '/prompts';
+    this.setupTheme();
     this.render();
     this.setupEventListeners();
+  }
+
+  setupTheme() {
+    // Check for dark mode preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+
+    // Listen for theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    });
   }
 
   setupEventListeners() {

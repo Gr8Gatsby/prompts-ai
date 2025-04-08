@@ -12,8 +12,16 @@ vi.mock('../../services/storage.js', () => ({
 describe('prompt-list', () => {
   let element;
   let storageService;
+  let originalLocation;
 
   beforeEach(async () => {
+    // Save original location
+    originalLocation = window.location;
+
+    // Mock window.location
+    delete window.location;
+    window.location = new URL('http://localhost');
+    
     // Create a new instance of the component
     element = document.createElement('prompt-list');
     document.body.appendChild(element);
@@ -28,6 +36,8 @@ describe('prompt-list', () => {
   afterEach(() => {
     document.body.removeChild(element);
     vi.clearAllMocks();
+    // Restore original location
+    window.location = originalLocation;
   });
 
   it('should render the list container and create button', () => {
@@ -93,7 +103,7 @@ describe('prompt-list', () => {
     expect(errorMessage.textContent).toContain('Failed to load prompts');
   });
 
-  it('should dispatch edit-prompt event when prompt card is clicked', async () => {
+  it('should dispatch route-changed event when prompt card is clicked', async () => {
     const mockPrompts = [{
       id: '1',
       title: 'Test Prompt',
@@ -104,18 +114,29 @@ describe('prompt-list', () => {
     storageService.getAllPrompts.mockResolvedValue(mockPrompts);
     await element.loadPrompts();
     
-    const editPromptHandler = vi.fn();
-    document.addEventListener('edit-prompt', editPromptHandler);
+    const routeChangedHandler = vi.fn();
+    window.addEventListener('route-changed', routeChangedHandler);
+    
+    // Mock pushState to update the URL
+    const pushStateSpy = vi.spyOn(window.history, 'pushState').mockImplementation((state, title, url) => {
+      window.location = new URL(url, window.location.origin);
+    });
     
     const promptCard = element.shadowRoot.querySelector('.prompt-card');
     promptCard.click();
     
-    expect(editPromptHandler).toHaveBeenCalledWith(
+    expect(routeChangedHandler).toHaveBeenCalledWith(
       expect.objectContaining({
-        detail: { promptId: '1' }
+        detail: { path: '/editor?id=1' }
       })
     );
-    document.removeEventListener('edit-prompt', editPromptHandler);
+
+    // Verify URL was updated
+    expect(window.location.pathname).toBe('/editor');
+    expect(window.location.search).toBe('?id=1');
+    
+    window.removeEventListener('route-changed', routeChangedHandler);
+    pushStateSpy.mockRestore();
   });
 
   it('should reload prompts when prompt-saved event is received', async () => {
