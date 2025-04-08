@@ -1,13 +1,15 @@
 import '../navigation/navigation.js';
 import '../router/router.js';
 
-class AppShell extends HTMLElement {
+export class AppShell extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback() {
+    this.style.display = 'grid';
+    this.style.gridTemplateRows = 'auto 1fr';
+    this.style.minHeight = '100vh';
+    this.style.backgroundColor = 'var(--background-color, #f5f5f5)';
+    this.style.color = 'var(--text-color, #333333)';
     this.render();
   }
 
@@ -18,6 +20,8 @@ class AppShell extends HTMLElement {
           display: block;
           height: 100%;
           width: 100%;
+          display: grid;
+          grid-template-rows: auto 1fr;
         }
 
         header {
@@ -28,44 +32,33 @@ class AppShell extends HTMLElement {
           z-index: 100;
         }
 
-        main {
-          display: block;
+        main.main-content {
           padding: 24px;
+          width: 100%;
           box-sizing: border-box;
-          min-height: calc(100vh - 44px);
-          background: var(--main-bg, #ffffff);
+          overflow-y: auto;
         }
 
         @media (max-width: 767px) {
-          main {
+          main.main-content {
             padding: 16px;
           }
         }
 
         @media (prefers-color-scheme: dark) {
-          :host {
-            --main-bg: #1c1c1e;
-            --text-color: #ffffff;
-          }
-
           header {
             background: #000000;
           }
         }
       </style>
-
       <header role="banner">
         <app-navigation></app-navigation>
       </header>
-
-      <main role="main">
+      <main role="main" class="main-content">
         <app-router></app-router>
       </main>
     `;
   }
 }
 
-// Only define the custom element if it hasn't been defined yet
-if (!customElements.get('app-shell')) {
-  customElements.define('app-shell', AppShell);
-}
+customElements.define('app-shell', AppShell);

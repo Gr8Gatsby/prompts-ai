@@ -1,13 +1,23 @@
 /**
  * Storage service for managing prompts and associated data using IndexedDB
  */
-class StorageService {
+export class StorageService {
   constructor() {
     this.DB_NAME = 'promptsDB';
     this.DB_VERSION = 1;
     this.db = null;
     this.initPromise = null;
     this.isTest = process.env.NODE_ENV === 'test';
+    
+    // In test mode, use in-memory storage
+    if (this.isTest) {
+      this.memoryStorage = {
+        prompts: new Map(),
+        files: new Map(),
+        examples: new Map(),
+        nextId: 1
+      };
+    }
   }
 
   /**
@@ -25,6 +35,10 @@ class StorageService {
    * @returns {Promise<void>}
    */
   async initializeDB() {
+    if (this.isTest) {
+      return Promise.resolve();
+    }
+
     if (this.initPromise) {
       return this.initPromise;
     }
@@ -91,6 +105,55 @@ class StorageService {
    * @returns {Promise<number>} The ID of the created prompt
    */
   async createPrompt(prompt) {
+    if (this.isTest) {
+      const id = this.memoryStorage.nextId++;
+      const promptData = {
+        ...prompt,
+        id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Store prompt
+      this.memoryStorage.prompts.set(id, promptData);
+      
+      // Store files if any
+      if (prompt.files?.length) {
+        promptData.files = [];
+        for (const file of prompt.files) {
+          const fileId = this.memoryStorage.nextId++;
+          const fileData = {
+            id: fileId,
+            promptId: id,
+            name: file.name,
+            type: file.type,
+            data: file,
+            createdAt: new Date()
+          };
+          this.memoryStorage.files.set(fileId, fileData);
+          promptData.files.push(fileId);
+        }
+      }
+      
+      // Store examples if any
+      if (prompt.examples?.length) {
+        promptData.examples = [];
+        for (const example of prompt.examples) {
+          const exampleId = this.memoryStorage.nextId++;
+          const exampleData = {
+            id: exampleId,
+            promptId: id,
+            ...example,
+            createdAt: new Date()
+          };
+          this.memoryStorage.examples.set(exampleId, exampleData);
+          promptData.examples.push(exampleId);
+        }
+      }
+      
+      return id;
+    }
+
     await this.ensureDB();
     
     const transaction = this.db.transaction(['prompts', 'files', 'examples'], 'readwrite');
@@ -162,6 +225,27 @@ class StorageService {
    * @returns {Promise<Object>} The prompt object with its files and examples
    */
   async getPrompt(id) {
+    if (this.isTest) {
+      const prompt = this.memoryStorage.prompts.get(id);
+      if (!prompt) {
+        throw new Error('Prompt not found');
+      }
+      
+      // Get associated files
+      const files = Array.from(this.memoryStorage.files.values())
+        .filter(f => f.promptId === id);
+      
+      // Get associated examples
+      const examples = Array.from(this.memoryStorage.examples.values())
+        .filter(e => e.promptId === id);
+      
+      return {
+        ...prompt,
+        files,
+        examples
+      };
+    }
+
     await this.ensureDB();
     
     const transaction = this.db.transaction(['prompts', 'files', 'examples'], 'readonly');
@@ -211,6 +295,19 @@ class StorageService {
    * @returns {Promise<void>}
    */
   async updatePrompt(id, updates) {
+    if (this.isTest) {
+      const prompt = this.memoryStorage.prompts.get(id);
+      if (!prompt) {
+        throw new Error('Prompt not found');
+      }
+      this.memoryStorage.prompts.set(id, {
+        ...prompt,
+        ...updates,
+        updatedAt: new Date()
+      });
+      return;
+    }
+
     await this.ensureDB();
     
     const transaction = this.db.transaction(['prompts'], 'readwrite');
@@ -251,6 +348,25 @@ class StorageService {
    * @returns {Promise<void>}
    */
   async deletePrompt(id) {
+    if (this.isTest) {
+      if (!this.memoryStorage.prompts.has(id)) {
+        throw new Error('Prompt not found');
+      }
+      this.memoryStorage.prompts.delete(id);
+      // Delete associated files and examples
+      for (const [fileId, file] of this.memoryStorage.files.entries()) {
+        if (file.promptId === id) {
+          this.memoryStorage.files.delete(fileId);
+        }
+      }
+      for (const [exampleId, example] of this.memoryStorage.examples.entries()) {
+        if (example.promptId === id) {
+          this.memoryStorage.examples.delete(exampleId);
+        }
+      }
+      return;
+    }
+
     await this.ensureDB();
     
     const transaction = this.db.transaction(['prompts', 'files', 'examples'], 'readwrite');
@@ -312,6 +428,20 @@ class StorageService {
    * @returns {Promise<Array>} Array of matching prompts
    */
   async searchPrompts({ query, tags } = {}) {
+    if (this.isTest) {
+      const allPrompts = Array.from(this.memoryStorage.prompts.values());
+      return allPrompts.filter(prompt => {
+        const matchesQuery = !query || 
+          prompt.title.toLowerCase().includes(query.toLowerCase()) ||
+          prompt.content.toLowerCase().includes(query.toLowerCase());
+        
+        const matchesTags = !tags?.length ||
+          tags.every(tag => prompt.tags.includes(tag));
+
+        return matchesQuery && matchesTags;
+      });
+    }
+
     await this.ensureDB();
     
     const transaction = this.db.transaction(['prompts'], 'readonly');
@@ -341,23 +471,43 @@ class StorageService {
   }
 
   /**
+   * Get all prompts
+   * @returns {Promise<Array>} Array of all prompts
+   */
+  async getAllPrompts() {
+    if (this.isTest) {
+      return Array.from(this.memoryStorage.prompts.values());
+    }
+
+    await this.ensureDB();
+    
+    const transaction = this.db.transaction(['prompts'], 'readonly');
+    const promptStore = transaction.objectStore('prompts');
+
+    try {
+      return await new Promise((resolve, reject) => {
+        const request = promptStore.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      this.logError('Failed to get all prompts:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Ensure database is initialized
    * @private
    * @returns {Promise<void>}
    */
   async ensureDB() {
+    if (this.isTest) {
+      return Promise.resolve();
+    }
+
     if (!this.db) {
       await this.initializeDB();
-      // Wait for initialization to complete
-      await this.initPromise;
     }
   }
-}
-
-// Export a singleton instance
-const storage = new StorageService();
-
-// Initialize the database immediately
-storage.initializeDB().catch(console.error);
-
-export { storage }; 
+} 

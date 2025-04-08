@@ -1,14 +1,28 @@
+import { StorageService } from '../../services/storage.js';
+
 class PromptList extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this.prompts = [];
+    this.storageService = new StorageService();
   }
 
   connectedCallback() {
     this.render();
     this.loadPrompts();
     this.setupEventListeners();
+
+    // Listen for prompt updates
+    document.addEventListener('prompt-saved', () => {
+      this.loadPrompts();
+    });
+  }
+
+  disconnectedCallback() {
+    document.removeEventListener('prompt-saved', () => {
+      this.loadPrompts();
+    });
   }
 
   render() {
@@ -115,8 +129,6 @@ class PromptList extends HTMLElement {
             --text-color: #ffffff;
             --card-background: #2c2c2e;
             --secondary-text-color: #8e8e93;
-            --tag-background: #3a3a3c;
-            --tag-text-color: #ffffff;
           }
         }
 
@@ -124,6 +136,13 @@ class PromptList extends HTMLElement {
           .container {
             padding: 16px;
           }
+        }
+
+        .error-message {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 32px;
+          color: var(--error-color, #ff3b30);
         }
       </style>
 
@@ -133,34 +152,51 @@ class PromptList extends HTMLElement {
           <button class="create-button">Create New Prompt</button>
         </div>
         <div class="prompts-grid">
-          ${this.renderEmptyState()}
-          ${this.prompts.map(prompt => this.renderPromptCard(prompt)).join('')}
+          ${this.prompts === null ? this.renderError() :
+            this.prompts.length === 0 ? this.renderEmptyState() :
+            this.prompts.map(prompt => this.renderPromptCard(prompt)).join('')}
         </div>
+      </div>
+    `;
+  }
+
+  renderError() {
+    return `
+      <div class="error-message">
+        <p>Failed to load prompts. Please try again later.</p>
       </div>
     `;
   }
 
   renderEmptyState() {
-    if (this.prompts.length === 0) {
-      return `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: var(--secondary-text-color, #666);">
-          <p>No prompts yet. Click "Create New Prompt" to get started.</p>
-        </div>
-      `;
-    }
-    return '';
+    return `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: var(--secondary-text-color, #666);">
+        <p>No prompts yet. Click "Create New Prompt" to get started.</p>
+      </div>
+    `;
   }
 
   renderPromptCard(prompt) {
     return `
       <div class="prompt-card" data-id="${prompt.id}">
-        <div class="prompt-title">${prompt.title}</div>
-        <div class="prompt-preview">${prompt.content}</div>
+        <div class="prompt-title">${this.escapeHtml(prompt.title)}</div>
+        <div class="prompt-preview">${this.escapeHtml(prompt.content)}</div>
         <div class="prompt-tags">
-          ${prompt.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+          ${prompt.tags.map(tag => `<span class="tag">${this.escapeHtml(tag)}</span>`).join('')}
         </div>
       </div>
     `;
+  }
+
+  escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+      .toString()
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   setupEventListeners() {
@@ -183,10 +219,16 @@ class PromptList extends HTMLElement {
     });
   }
 
-  loadPrompts() {
-    // TODO: Load prompts from storage
-    this.prompts = [];
-    this.render();
+  async loadPrompts() {
+    try {
+      this.prompts = await this.storageService.getAllPrompts();
+      this.render();
+      this.setupEventListeners();
+    } catch (error) {
+      console.error('Failed to load prompts:', error);
+      this.prompts = null;
+      this.render();
+    }
   }
 }
 

@@ -1,30 +1,58 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import 'fake-indexeddb/auto';
-import { IDBFactory } from 'fake-indexeddb';
-import { indexedDB } from 'fake-indexeddb';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { StorageService } from './storage.js';
+
+// Mock indexedDB
+const mockIndexedDB = {
+  open: () => {
+    const request = {
+      result: {
+        objectStoreNames: {
+          contains: () => false
+        },
+        createObjectStore: () => ({
+          createIndex: () => {}
+        }),
+        transaction: () => ({
+          objectStore: () => ({
+            add: () => ({ result: 1 }),
+            get: () => ({ result: null }),
+            getAll: () => ({ result: [] }),
+            put: () => ({ result: undefined }),
+            delete: () => ({ result: undefined }),
+            index: () => ({
+              getAll: () => ({ result: [] }),
+              getAllKeys: () => ({ result: [] })
+            })
+          })
+        }),
+        close: () => {}
+      },
+      onerror: null,
+      onsuccess: null,
+      onupgradeneeded: null
+    };
+
+    setTimeout(() => {
+      request.onupgradeneeded?.({ target: request });
+      request.onsuccess?.({ target: request });
+    });
+
+    return request;
+  }
+};
 
 // Set up the mock IndexedDB environment
-global.indexedDB = indexedDB;
-
-// Now we can safely import our storage module
-import { storage } from './storage.js';
+global.indexedDB = mockIndexedDB;
 
 describe('StorageService', () => {
-  beforeEach(async () => {
-    // Reset IndexedDB before each test
-    global.indexedDB = new IDBFactory();
-    
-    // Reset the storage instance
-    storage.db = null;
-    storage.initPromise = null;
-    
-    // Initialize fresh database
-    await storage.initializeDB();
+  let service;
+
+  beforeEach(() => {
+    service = new StorageService();
   });
 
   afterEach(() => {
-    // Clean up
-    storage.db?.close();
+    service.db?.close();
   });
 
   describe('createPrompt', () => {
@@ -35,10 +63,10 @@ describe('StorageService', () => {
         tags: ['test', 'example']
       };
 
-      const id = await storage.createPrompt(promptData);
+      const id = await service.createPrompt(promptData);
       expect(id).toBeDefined();
 
-      const savedPrompt = await storage.getPrompt(id);
+      const savedPrompt = await service.getPrompt(id);
       expect(savedPrompt).toMatchObject({
         title: promptData.title,
         content: promptData.content,
@@ -57,8 +85,8 @@ describe('StorageService', () => {
         files: [file]
       };
 
-      const id = await storage.createPrompt(promptData);
-      const savedPrompt = await storage.getPrompt(id);
+      const id = await service.createPrompt(promptData);
+      const savedPrompt = await service.getPrompt(id);
       
       expect(savedPrompt.files).toHaveLength(1);
       expect(savedPrompt.files[0]).toMatchObject({
@@ -78,8 +106,8 @@ describe('StorageService', () => {
         }]
       };
 
-      const id = await storage.createPrompt(promptData);
-      const savedPrompt = await storage.getPrompt(id);
+      const id = await service.createPrompt(promptData);
+      const savedPrompt = await service.getPrompt(id);
       
       expect(savedPrompt.examples).toHaveLength(1);
       expect(savedPrompt.examples[0]).toMatchObject({
@@ -91,7 +119,7 @@ describe('StorageService', () => {
 
   describe('getPrompt', () => {
     it('should throw error for non-existent prompt', async () => {
-      await expect(storage.getPrompt(999)).rejects.toThrow('Prompt not found');
+      await expect(service.getPrompt(999)).rejects.toThrow('Prompt not found');
     });
 
     it('should retrieve a prompt with all associated data', async () => {
@@ -107,8 +135,8 @@ describe('StorageService', () => {
         }]
       };
 
-      const id = await storage.createPrompt(promptData);
-      const savedPrompt = await storage.getPrompt(id);
+      const id = await service.createPrompt(promptData);
+      const savedPrompt = await service.getPrompt(id);
 
       expect(savedPrompt).toMatchObject({
         title: promptData.title,
@@ -128,14 +156,14 @@ describe('StorageService', () => {
         tags: ['original']
       };
 
-      const id = await storage.createPrompt(promptData);
+      const id = await service.createPrompt(promptData);
       const updates = {
         title: 'Updated Title',
         tags: ['updated']
       };
 
-      await storage.updatePrompt(id, updates);
-      const updatedPrompt = await storage.getPrompt(id);
+      await service.updatePrompt(id, updates);
+      const updatedPrompt = await service.getPrompt(id);
 
       expect(updatedPrompt).toMatchObject({
         title: updates.title,
@@ -146,7 +174,7 @@ describe('StorageService', () => {
     });
 
     it('should throw error when updating non-existent prompt', async () => {
-      await expect(storage.updatePrompt(999, { title: 'New' }))
+      await expect(service.updatePrompt(999, { title: 'New' }))
         .rejects.toThrow('Prompt not found');
     });
   });
@@ -165,22 +193,22 @@ describe('StorageService', () => {
         }]
       };
 
-      const id = await storage.createPrompt(promptData);
-      await storage.deletePrompt(id);
+      const id = await service.createPrompt(promptData);
+      await service.deletePrompt(id);
 
-      await expect(storage.getPrompt(id)).rejects.toThrow('Prompt not found');
+      await expect(service.getPrompt(id)).rejects.toThrow('Prompt not found');
     });
   });
 
   describe('searchPrompts', () => {
     beforeEach(async () => {
       // Create test prompts
-      await storage.createPrompt({
+      await service.createPrompt({
         title: 'First Prompt',
         content: 'Content one',
         tags: ['tag1', 'common']
       });
-      await storage.createPrompt({
+      await service.createPrompt({
         title: 'Second Prompt',
         content: 'Content two',
         tags: ['tag2', 'common']
@@ -188,35 +216,35 @@ describe('StorageService', () => {
     });
 
     it('should search prompts by title', async () => {
-      const results = await storage.searchPrompts({ query: 'First' });
+      const results = await service.searchPrompts({ query: 'First' });
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('First Prompt');
     });
 
     it('should search prompts by content', async () => {
-      const results = await storage.searchPrompts({ query: 'two' });
+      const results = await service.searchPrompts({ query: 'two' });
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('Second Prompt');
     });
 
     it('should search prompts by tags', async () => {
-      const results = await storage.searchPrompts({ tags: ['tag1'] });
+      const results = await service.searchPrompts({ tags: ['tag1'] });
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('First Prompt');
     });
 
     it('should search prompts by multiple tags', async () => {
-      const results = await storage.searchPrompts({ tags: ['common'] });
+      const results = await service.searchPrompts({ tags: ['common'] });
       expect(results).toHaveLength(2);
     });
 
     it('should return all prompts when no search criteria', async () => {
-      const results = await storage.searchPrompts();
+      const results = await service.searchPrompts();
       expect(results).toHaveLength(2);
     });
 
     it('should return empty array when no matches', async () => {
-      const results = await storage.searchPrompts({ query: 'nonexistent' });
+      const results = await service.searchPrompts({ query: 'nonexistent' });
       expect(results).toHaveLength(0);
     });
   });

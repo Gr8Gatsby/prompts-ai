@@ -1,82 +1,14 @@
-class Navigation extends HTMLElement {
+export class AppNavigation extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this.isMobile = window.matchMedia('(max-width: 767px)').matches;
-    this.loadIcons();
+    this.isMobile = false;
+    this.isMenuOpen = false;
+    this.currentPath = window.location.pathname || '/prompts';
     this.render();
-  }
-
-  async loadIcons() {
-    // Create a link element for the font
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0';
-    
-    // Wait for the font to load
-    await new Promise((resolve) => {
-      link.onload = resolve;
-      document.head.appendChild(link);
-    });
-  }
-
-  connectedCallback() {
-    this.setupNavigation();
-    this.setupMobileDetection();
-    this.setupClickOutsideHandler();
-    this.setInitialActiveState();
-  }
-
-  disconnectedCallback() {
-    this.mediaQuery?.removeEventListener('change', this.handleMobileChange);
-    document.removeEventListener('click', this.handleClickOutside);
-  }
-
-  setupMobileDetection() {
-    this.mediaQuery = window.matchMedia('(max-width: 767px)');
-    this.handleMobileChange = (e) => {
-      this.isMobile = e.matches;
-      this.updateMobileStyles();
-    };
-    this.mediaQuery.addEventListener('change', this.handleMobileChange);
-    this.updateMobileStyles();
-  }
-
-  setupClickOutsideHandler() {
-    this.handleClickOutside = (e) => {
-      const menu = this.shadowRoot.querySelector('ul');
-      const menuButton = this.shadowRoot.querySelector('.menu-button');
-      if (this.isMobile && menu.classList.contains('open') && 
-          !menu.contains(e.target) && !menuButton.contains(e.target)) {
-        menu.classList.remove('open');
-        menuButton.setAttribute('aria-expanded', 'false');
-      }
-    };
-    document.addEventListener('click', this.handleClickOutside);
-  }
-
-  updateMobileStyles() {
-    const menuButton = this.shadowRoot.querySelector('.menu-button');
-    if (this.isMobile) {
-      menuButton.style.display = 'flex';
-    } else {
-      menuButton.style.display = 'none';
-      const menu = this.shadowRoot.querySelector('ul');
-      menu.classList.remove('open');
-      menuButton.setAttribute('aria-expanded', 'false');
-    }
-  }
-
-  setInitialActiveState() {
-    const links = this.shadowRoot.querySelectorAll('a');
-    const currentPath = window.location.pathname;
-    links.forEach(link => {
-      if (link.getAttribute('href') === currentPath) {
-        link.setAttribute('aria-current', 'page');
-      } else {
-        link.removeAttribute('aria-current');
-      }
-    });
+    this.setupEventListeners();
+    // Force an immediate active state update
+    requestAnimationFrame(() => this.updateActiveLink());
   }
 
   render() {
@@ -84,203 +16,130 @@ class Navigation extends HTMLElement {
       <style>
         :host {
           display: block;
-          background: var(--nav-bg, #1a1a1a);
-          color: var(--nav-text, #ffffff);
-          border-bottom: none;
         }
 
         nav {
-          width: 100%;
-          padding: 0 24px;
-          box-sizing: border-box;
-          border-bottom: none;
-          height: 44px;
           display: flex;
           align-items: center;
-        }
-
-        ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          gap: 8px;
-          height: 44px;
-          align-items: center;
-          border-bottom: none;
-        }
-
-        li {
-          position: relative;
-        }
-
-        a {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--nav-text, #ffffff);
-          text-decoration: none;
-          padding: 6px 12px;
-          border-radius: 6px;
-          font-size: 14px;
-          font-weight: 500;
-          letter-spacing: -0.01em;
-          transition: all 0.2s ease;
-          -webkit-font-smoothing: antialiased;
-          white-space: nowrap;
-          opacity: 0.8;
-        }
-
-        .material-symbols-rounded {
-          font-family: 'Material Symbols Rounded';
-          font-weight: normal;
-          font-style: normal;
-          font-size: 20px;
-          line-height: 1;
-          letter-spacing: normal;
-          text-transform: none;
-          display: inline-block;
-          white-space: nowrap;
-          word-wrap: normal;
-          direction: ltr;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          text-rendering: optimizeLegibility;
-          font-feature-settings: "liga";
-        }
-
-        a:hover {
-          background: var(--nav-hover, rgba(255, 255, 255, 0.1));
-          opacity: 0.9;
-        }
-
-        a[aria-current="page"] {
-          opacity: 1;
-          background: var(--nav-active, rgba(255, 255, 255, 0.15));
-        }
-
-        a[aria-current="page"] .material-symbols-rounded {
-          font-variation-settings: 'FILL' 1;
-        }
-
-        /* Selected indicator line */
-        a[aria-current="page"]::after {
-          content: '';
-          position: absolute;
-          bottom: -1px;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background: var(--nav-text, #ffffff);
-          border-radius: 1px;
-          opacity: 0.8;
+          gap: 1rem;
         }
 
         .menu-button {
-          display: ${this.isMobile ? 'flex' : 'none'};
-          align-items: center;
-          justify-content: center;
+          display: none;
           background: none;
           border: none;
-          color: var(--nav-text, #ffffff);
-          padding: 8px;
+          color: inherit;
           cursor: pointer;
-          border-radius: 6px;
-          transition: background-color 0.2s ease;
-          height: 36px;
-          width: 36px;
-          margin: 4px 0;
+          padding: 0.5rem;
         }
 
-        .menu-button:hover {
-          background: var(--nav-hover, rgba(255, 255, 255, 0.1));
+        .menu-button svg {
+          width: 24px;
+          height: 24px;
+        }
+
+        .nav-links {
+          display: flex;
+          gap: 1rem;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .nav-links a {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          color: inherit;
+          text-decoration: none;
+          border-radius: 6px;
+          transition: background-color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+          background-color: var(--hover-color, rgba(0, 0, 0, 0.05));
+        }
+
+        .nav-links a[aria-current="page"] {
+          background-color: var(--active-color, rgba(0, 0, 0, 0.08));
+        }
+
+        .nav-links a svg {
+          width: 20px;
+          height: 20px;
         }
 
         @media (max-width: 767px) {
-          nav {
-            padding: 0 16px;
-            position: relative;
-            height: 44px;
-            display: flex;
-            align-items: center;
+          .menu-button {
+            display: block;
           }
 
-          ul {
+          nav.visible .nav-links {
+            display: flex;
             position: absolute;
-            top: 44px;
+            top: 100%;
             left: 0;
             right: 0;
+            background-color: var(--header-background, #ffffff);
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             flex-direction: column;
-            background: var(--nav-bg, #1a1a1a);
-            height: auto;
-            padding: 8px;
-            gap: 4px;
-            transform: translateY(-100%);
-            opacity: 0;
-            transition: all 0.2s ease;
-            pointer-events: none;
-            z-index: 100;
-            margin: 0;
           }
 
-          ul.open {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: all;
-          }
-
-          li {
-            width: 100%;
-          }
-
-          a {
-            width: 100%;
-            padding: 12px;
-            justify-content: flex-start;
-          }
-
-          a[aria-current="page"]::after {
+          .nav-links {
             display: none;
           }
         }
 
         @media (prefers-color-scheme: dark) {
-          :host {
-            --nav-bg: #000000;
-            --nav-text: #ffffff;
-            --nav-hover: rgba(255, 255, 255, 0.1);
-            --nav-active: rgba(255, 255, 255, 0.15);
+          .nav-links a:hover {
+            --hover-color: rgba(255, 255, 255, 0.05);
+          }
+
+          .nav-links a[aria-current="page"] {
+            --active-color: rgba(255, 255, 255, 0.08);
           }
         }
       </style>
-
-      <nav role="navigation" aria-label="Main navigation">
-        <button class="menu-button" aria-label="Toggle navigation menu" aria-expanded="false">
-          <span class="material-symbols-rounded">menu</span>
+      <nav>
+        <button class="menu-button" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
         </button>
-        <ul>
+        <ul class="nav-links">
           <li>
-            <a href="/prompts" data-page="prompts">
-              <span class="material-symbols-rounded">edit_note</span>
-              <span>Prompts</span>
+            <a href="/prompts" aria-current="${this.currentPath === '/prompts' ? 'page' : 'false'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Prompts
             </a>
           </li>
           <li>
-            <a href="/analytics" data-page="analytics">
-              <span class="material-symbols-rounded">analytics</span>
-              <span>Analytics</span>
+            <a href="/analytics" aria-current="${this.currentPath === '/analytics' ? 'page' : 'false'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+              Analytics
             </a>
           </li>
           <li>
-            <a href="/testing" data-page="testing">
-              <span class="material-symbols-rounded">science</span>
-              <span>Testing</span>
+            <a href="/testing" aria-current="${this.currentPath === '/testing' ? 'page' : 'false'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              Testing
             </a>
           </li>
           <li>
-            <a href="/settings" data-page="settings">
-              <span class="material-symbols-rounded">settings</span>
-              <span>Settings</span>
+            <a href="/settings" aria-current="${this.currentPath === '/settings' ? 'page' : 'false'}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Settings
             </a>
           </li>
         </ul>
@@ -288,45 +147,75 @@ class Navigation extends HTMLElement {
     `;
   }
 
-  setupNavigation() {
-    const menuButton = this.shadowRoot.querySelector('.menu-button');
-    const menu = this.shadowRoot.querySelector('ul');
-    const links = this.shadowRoot.querySelectorAll('a');
+  setupEventListeners() {
+    // Setup media query
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    this.handleMediaQueryChange(mediaQuery);
+    
+    // Support both old and new media query APIs
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', e => this.handleMediaQueryChange(e));
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(e => this.handleMediaQueryChange(e));
+    }
 
-    // Toggle mobile menu
+    // Setup menu button
+    const menuButton = this.shadowRoot.querySelector('.menu-button');
     menuButton.addEventListener('click', () => {
-      const isOpen = menu.classList.toggle('open');
-      menuButton.setAttribute('aria-expanded', isOpen.toString());
+      this.isMenuOpen = !this.isMenuOpen;
+      this.updateMenuVisibility();
     });
 
-    // Handle navigation
+    // Setup navigation links
+    const links = this.shadowRoot.querySelectorAll('.nav-links a');
     links.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        const page = link.dataset.page;
-        
-        // Dispatch navigation event
-        document.dispatchEvent(new CustomEvent('navigate', {
-          detail: { page },
-          bubbles: true,
-          composed: true
-        }));
-
-        // Update active state
-        links.forEach(l => l.removeAttribute('aria-current'));
-        link.setAttribute('aria-current', 'page');
-
-        // Close mobile menu if open
+        const href = link.getAttribute('href');
+        window.history.pushState({}, '', href);
+        this.updateActiveLink();
         if (this.isMobile) {
-          menu.classList.remove('open');
-          menuButton.setAttribute('aria-expanded', 'false');
+          this.isMenuOpen = false;
+          this.updateMenuVisibility();
         }
       });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (this.isMenuOpen && !this.shadowRoot.contains(e.target)) {
+        this.isMenuOpen = false;
+        this.updateMenuVisibility();
+      }
+    });
+  }
+
+  handleMediaQueryChange(e) {
+    this.isMobile = e.matches;
+    if (!this.isMobile) {
+      this.isMenuOpen = false;
+    }
+    this.updateMenuVisibility();
+  }
+
+  updateMenuVisibility() {
+    const nav = this.shadowRoot.querySelector('nav');
+    nav.classList.toggle('visible', this.isMenuOpen);
+  }
+
+  updateActiveLink() {
+    const links = this.shadowRoot.querySelectorAll('.nav-links a');
+    const currentPath = window.location.pathname || '/prompts';
+    
+    links.forEach(link => {
+      const href = link.getAttribute('href');
+      if (currentPath === href) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.setAttribute('aria-current', 'false');
+      }
     });
   }
 }
 
-// Only define the custom element if it hasn't been defined yet
-if (!customElements.get('app-navigation')) {
-  customElements.define('app-navigation', Navigation);
-} 
+customElements.define('app-navigation', AppNavigation); 
