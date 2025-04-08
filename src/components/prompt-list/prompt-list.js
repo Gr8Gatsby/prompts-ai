@@ -16,15 +16,15 @@ export class PromptList extends BaseComponent {
     this.setupEventListeners();
 
     // Listen for prompt updates
-    document.addEventListener('prompt-saved', () => {
-      this.loadPrompts();
-    });
+    this.boundPromptSavedHandler = () => this.loadPrompts();
+    window.addEventListener('prompt-saved', this.boundPromptSavedHandler);
+    document.addEventListener('prompt-saved', this.boundPromptSavedHandler);
   }
 
   disconnectedCallback() {
-    document.removeEventListener('prompt-saved', () => {
-      this.loadPrompts();
-    });
+    // Clean up event listeners
+    window.removeEventListener('prompt-saved', this.boundPromptSavedHandler);
+    document.removeEventListener('prompt-saved', this.boundPromptSavedHandler);
   }
 
   render() {
@@ -39,6 +39,8 @@ export class PromptList extends BaseComponent {
           max-width: var(--content-width);
           margin: 0 auto;
           padding: 0 var(--spacing-md);
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .header {
@@ -86,7 +88,8 @@ export class PromptList extends BaseComponent {
         .prompts {
           display: grid;
           gap: var(--spacing-lg);
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          width: 100%;
         }
 
         .prompt-card {
@@ -100,6 +103,8 @@ export class PromptList extends BaseComponent {
           display: flex;
           flex-direction: column;
           position: relative;
+          box-sizing: border-box;
+          min-height: 200px;
         }
         
         .prompt-card:hover {
@@ -259,8 +264,17 @@ export class PromptList extends BaseComponent {
             margin-bottom: var(--spacing-md);
           }
           
+          .prompt-list {
+            padding: 0 var(--spacing-sm);
+          }
+          
           .prompts {
             gap: var(--spacing-md);
+            grid-template-columns: 1fr;
+          }
+
+          .prompt-card {
+            min-height: 180px;
           }
         }
 

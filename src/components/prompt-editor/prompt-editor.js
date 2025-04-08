@@ -80,14 +80,7 @@ export class PromptEditor extends BaseComponent {
     const newTag = tagValue.trim();
     if (newTag && !this.prompt.tags.includes(newTag)) {
       this.prompt.tags = [...this.prompt.tags, newTag];
-      this.render();
-      this.setupEventListeners();
-      
-      // Focus the tag input after adding a tag
-      const tagInput = this.shadowRoot.querySelector('.tag-input');
-      if (tagInput) {
-        tagInput.focus();
-      }
+      this.updateTags();
       return true;
     }
     return false;
@@ -95,8 +88,42 @@ export class PromptEditor extends BaseComponent {
 
   removeTag(tagToRemove) {
     this.prompt.tags = this.prompt.tags.filter(tag => tag !== tagToRemove);
-    this.render();
-    this.setupEventListeners();
+    this.updateTags();
+  }
+
+  updateTags() {
+    const tagsContainer = this.shadowRoot.querySelector('.tags-container');
+    if (!tagsContainer) return;
+
+    tagsContainer.innerHTML = this.renderTags();
+    
+    // Re-attach event listeners for tag removal
+    const tagRemoveButtons = this.shadowRoot.querySelectorAll('.tag-remove');
+    tagRemoveButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tag = button.closest('.tag');
+        if (tag) {
+          const tagText = tag.textContent.replace('×', '').trim();
+          this.removeTag(tagText);
+        }
+      });
+    });
+
+    // Focus the tag input
+    const tagInput = this.shadowRoot.querySelector('.tag-input');
+    if (tagInput) {
+      tagInput.value = '';
+      tagInput.focus();
+    }
+  }
+
+  renderTags() {
+    return this.prompt.tags.map(tag => `
+      <span class="tag">
+        ${this.escapeHtml(tag)}
+        <button class="tag-remove" type="button">×</button>
+      </span>
+    `).join('');
   }
 
   setupEventListeners() {
@@ -116,13 +143,35 @@ export class PromptEditor extends BaseComponent {
           this.prompt = {
             ...this.prompt,
             title: titleInput.value.trim(),
-            content: contentInput.value.trim()
+            content: contentInput.value.trim(),
+            tags: this.prompt.tags
           };
           
-          const id = await this.storageService.createPrompt(this.prompt);
-          this.prompt.id = id;
+          // Use createPrompt for new prompts, savePrompt for existing ones
+          if (this.prompt.id) {
+            await this.storageService.savePrompt(this.prompt);
+          } else {
+            const id = await this.storageService.createPrompt(this.prompt);
+            this.prompt.id = id;
+          }
+          
           this.showSaveConfirmation();
-          this.dispatchEvent(new CustomEvent('prompt-saved', { detail: { id } }));
+          
+          // Dispatch event with the correct format
+          const savedEvent = new CustomEvent('prompt-saved', {
+            detail: { id: this.prompt.id },
+            bubbles: true,
+            composed: true
+          });
+          this.dispatchEvent(savedEvent);
+          
+          // Navigate back to prompts list after a short delay
+          setTimeout(() => {
+            window.history.pushState({}, '', '/prompts');
+            window.dispatchEvent(new CustomEvent('route-changed', {
+              detail: { path: '/prompts' }
+            }));
+          }, 1500);
         } catch (error) {
           console.error('Failed to save prompt:', error);
         }
@@ -140,18 +189,6 @@ export class PromptEditor extends BaseComponent {
         this.addTag(tagInput.value.trim());
         tagInput.value = '';
       }
-    });
-
-    // Tag removal
-    const tagRemoveButtons = this.shadowRoot.querySelectorAll('.tag-remove');
-    tagRemoveButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tag = button.closest('.tag');
-        if (tag) {
-          const tagText = tag.textContent.replace('×', '').trim();
-          this.removeTag(tagText);
-        }
-      });
     });
 
     // Cancel button
@@ -176,10 +213,10 @@ export class PromptEditor extends BaseComponent {
       saveButton.textContent = 'Saved!';
       
       this.saveTimeout = setTimeout(() => {
-        if (saveButton) {
-          saveButton.textContent = originalText;
+        if (saveButton && !saveButton.disabled) {
+          saveButton.textContent = 'Save Prompt';
         }
-      }, 3000);
+      }, 1500);
     }
   }
 
@@ -456,28 +493,29 @@ export class PromptEditor extends BaseComponent {
         <form id="prompt-form">
           <div class="form-group">
             <label for="title">Title</label>
-            <input type="text" id="title" class="input" value="${this.escapeHtml(this.prompt?.title || '')}" required>
-            <div class="error-message" id="title-error">Title is required</div>
+            <input type="text" id="title" class="input" value="${this.escapeHtml(this.prompt.title)}" required>
+            <div id="title-error" class="error-message">Title is required</div>
           </div>
 
           <div class="form-group">
-            <label for="content">Prompt Content</label>
-            <textarea id="content" class="input" required>${this.escapeHtml(this.prompt?.content || '')}</textarea>
-            <div class="error-message" id="content-error">Content is required</div>
+            <label for="content">Content</label>
+            <textarea id="content" class="input" rows="6" required>${this.escapeHtml(this.prompt.content)}</textarea>
+            <div id="content-error" class="error-message">Content is required</div>
           </div>
 
           <div class="form-group">
             <label>Tags</label>
             <div class="tags-input">
-              ${this.prompt?.tags.map(tag => `
-                <span class="tag">${this.escapeHtml(tag)}<button type="button" class="tag-remove" data-tag="${this.escapeHtml(tag)}" aria-label="Remove tag">×</button></span>`).join('')}
-              <input type="text" class="tag-input" placeholder="Add tag...">
+              <div class="tags-container">
+                ${this.renderTags()}
+              </div>
+              <input type="text" id="tag-input" name="tag-input" class="tag-input input" placeholder="Add tags...">
             </div>
           </div>
 
           <div class="actions">
-            <button type="button" class="cancel-button">Cancel</button>
-            <button type="submit" class="save-button" disabled>Save Prompt</button>
+            <button type="button" class="btn btn-secondary cancel-button">Cancel</button>
+            <button type="submit" class="btn btn-primary save-button">Save Prompt</button>
           </div>
         </form>
       </div>
