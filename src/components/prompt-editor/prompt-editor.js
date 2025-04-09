@@ -1,5 +1,6 @@
 import { StorageService } from '../../services/storage.js';
 import { BaseComponent } from '../base-component.js';
+import './file-upload.js';
 
 export class PromptEditor extends BaseComponent {
   constructor() {
@@ -8,7 +9,8 @@ export class PromptEditor extends BaseComponent {
     this.prompt = {
       title: '',
       content: '',
-      tags: []
+      tags: [],
+      files: []
     };
     this.originalPrompt = null;
     this.saveTimeout = null;
@@ -511,6 +513,11 @@ export class PromptEditor extends BaseComponent {
               </div>
               <input type="text" id="tag-input" name="tag-input" class="tag-input input" placeholder="Add tags...">
             </div>
+          </div>
+
+          <div class="form-group">
+            <label>Attachments</label>
+            <file-upload></file-upload>
           </div>
 
           <div class="actions">

@@ -82,7 +82,7 @@ export class AppShell extends HTMLElement {
       <style>
         :host {
           display: block;
-          height: 100%;
+          height: 100vh;
           width: 100%;
           display: grid;
           grid-template-rows: var(--header-height) 1fr;
@@ -102,8 +102,9 @@ export class AppShell extends HTMLElement {
         main {
           padding: var(--spacing-lg);
           width: 100%;
+          height: 100%;
           box-sizing: border-box;
-          overflow-y: auto;
+          overflow: hidden;
           background: var(--primary-background);
         }
 
@@ -114,6 +115,7 @@ export class AppShell extends HTMLElement {
 
         section[aria-current="page"] {
           display: block;
+          height: 100%;
         }
 
         h1 {

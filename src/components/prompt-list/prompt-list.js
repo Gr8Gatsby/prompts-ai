@@ -33,6 +33,7 @@ export class PromptList extends BaseComponent {
         :host {
           display: block;
           width: 100%;
+          height: 100%;
         }
 
         .prompt-list {
@@ -40,13 +41,17 @@ export class PromptList extends BaseComponent {
           margin: 0 auto;
           padding: 0 var(--spacing-md);
           width: 100%;
+          height: 100%;
           box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
         }
 
         .header {
           display: flex;
           justify-content: flex-end;
           margin-bottom: var(--spacing-lg);
+          flex-shrink: 0;
         }
 
         .create-button {
@@ -89,7 +94,12 @@ export class PromptList extends BaseComponent {
           display: grid;
           gap: var(--spacing-lg);
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-auto-rows: 220px;
           width: 100%;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+          padding-bottom: var(--spacing-lg);
         }
 
         .prompt-card {
@@ -99,12 +109,11 @@ export class PromptList extends BaseComponent {
           cursor: pointer;
           transition: all 0.2s ease;
           border: 1px solid var(--border-color);
-          height: 100%;
           display: flex;
           flex-direction: column;
           position: relative;
           box-sizing: border-box;
-          min-height: 200px;
+          height: 100%;
         }
         
         .prompt-card:hover {
@@ -118,6 +127,7 @@ export class PromptList extends BaseComponent {
           justify-content: space-between;
           align-items: flex-start;
           margin-bottom: var(--spacing-md);
+          flex-shrink: 0;
         }
         
         .prompt-title {
@@ -148,14 +158,14 @@ export class PromptList extends BaseComponent {
         
         .prompt-preview {
           font-size: var(--font-size-sm);
-          margin-bottom: var(--spacing-md);
           color: var(--text-secondary);
           line-height: var(--line-height-normal);
-          flex-grow: 1;
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
+          flex: 1;
           overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          margin-bottom: var(--spacing-md);
         }
         
         .prompt-tags {
@@ -163,6 +173,7 @@ export class PromptList extends BaseComponent {
           flex-wrap: wrap;
           gap: var(--spacing-xs);
           margin-top: auto;
+          flex-shrink: 0;
         }
         
         .tag {
@@ -340,19 +351,37 @@ export class PromptList extends BaseComponent {
   }
 
   renderPromptCard(prompt) {
+    const attachmentCount = prompt.attachments ? prompt.attachments.length : 0;
+    const attachmentsDropdown = prompt.attachments ? prompt.attachments.map(file => `
+      <div class="attachment-item">
+        <span class="file-icon">${this.getFileIcon(file.type)}</span>
+        <span class="file-name">${this.escapeHtml(file.name)}</span>
+      </div>
+    `).join('') : '';
+
     return `
       <div class="prompt-card" data-id="${prompt.id}">
         <div class="prompt-card-header">
           <div class="prompt-title">${this.escapeHtml(prompt.title)}</div>
+          <div class="attachment-icon" data-id="${prompt.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-paperclip"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            <span class="badge">${attachmentCount}</span>
+          </div>
           <button class="delete-button" data-id="${prompt.id}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
             </svg>
           </button>
         </div>
         <div class="prompt-preview">${this.escapeHtml(prompt.content)}</div>
         <div class="prompt-tags">
           ${prompt.tags.map(tag => `<span class="tag">${this.escapeHtml(tag)}</span>`).join('')}
+        </div>
+        <div class="attachments-dropdown">
+          ${attachmentsDropdown}
         </div>
       </div>
     `;
@@ -422,6 +451,8 @@ export class PromptList extends BaseComponent {
     // Card click event (for editing)
     this.shadowRoot.querySelectorAll('.prompt-card').forEach(card => {
       const deleteButton = card.querySelector('.delete-button');
+      const attachmentIcon = card.querySelector('.attachment-icon');
+      const attachmentsDropdown = card.querySelector('.attachments-dropdown');
       
       // Delete button click
       deleteButton?.addEventListener('click', (e) => {
@@ -430,10 +461,16 @@ export class PromptList extends BaseComponent {
         this.showDeleteModal(promptId);
       });
 
+      // Attachment icon click
+      attachmentIcon?.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent card click
+        attachmentsDropdown.classList.toggle('visible');
+      });
+
       // Card click (for editing)
       card.addEventListener('click', (e) => {
-        // Don't navigate if clicking delete button
-        if (e.target.closest('.delete-button')) {
+        // Don't navigate if clicking delete button or attachment icon
+        if (e.target.closest('.delete-button') || e.target.closest('.attachment-icon')) {
           return;
         }
 

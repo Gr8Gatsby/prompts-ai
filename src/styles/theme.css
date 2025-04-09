@@ -271,4 +271,29 @@ body {
     --hover-overlay: rgba(255, 255, 255, 0.1);
     --active-overlay: rgba(255, 255, 255, 0.15);
   }
+}
+
+/* Icon Styles */
+.icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.icon-prompts {
+  background-image: url('../icons/Feather Icons/file-text.svg');
+}
+
+.icon-analytics {
+  background-image: url('../icons/Feather Icons/bar-chart-2.svg');
+}
+
+.icon-testing {
+  background-image: url('../icons/Feather Icons/activity.svg');
+}
+
+.icon-settings {
+  background-image: url('../icons/Feather Icons/settings.svg');
 } 
