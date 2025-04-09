@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Management App</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        app-shell {
+            display: block;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+  <script type="module" crossorigin src="/prompts-ai/assets/index-8DvrIvMD.js"></script>
+  <link rel="stylesheet" crossorigin href="/prompts-ai/assets/index-DSJg6lW1.css">
+</head>
+<body>
+    <app-shell>
+        <template shadowroot="open">
+            <style>
+                :host {
+                    display: block;
+                    height: 100%;
+                    width: 100%;
+                    display: grid;
+                    grid-template-rows: auto 1fr;
+                }
+
+                header {
+                    background: #1a1a1a;
+                    padding: 0;
+                    position: sticky;
+                    top: 0;
+                    z-index: 100;
+                }
+
+                main {
+                    padding: 24px;
+                    width: 100%;
+                    box-sizing: border-box;
+                    overflow-y: auto;
+                }
+
+                section {
+                    display: none;
+                    height: 100%;
+                }
+
+                section[aria-current="page"] {
+                    display: block;
+                }
+
+                h1 {
+                    margin: 0 0 24px 0;
+                    font-size: 24px;
+                    font-weight: 600;
+                    letter-spacing: -0.01em;
+                }
+
+                @media (max-width: 767px) {
+                    main {
+                        padding: 16px;
+                    }
+
+                    h1 {
+                        font-size: 20px;
+                        margin-bottom: 16px;
+                    }
+                }
+
+                @media (prefers-color-scheme: dark) {
+                    header {
+                        background: #000000;
+                    }
+                }
+            </style>
+
+            <header role="banner">
+                <app-navigation></app-navigation>
+            </header>
+
+            <main role="main">
+                <section id="prompts" aria-labelledby="prompts-heading" aria-current="page">
+                    <h1 id="prompts-heading">Prompt Management</h1>
+                    <prompt-editor></prompt-editor>
+                </section>
+                
+                <section id="analytics" aria-labelledby="analytics-heading">
+                    <h1 id="analytics-heading">Analytics Dashboard</h1>
+                    <analytics-dashboard></analytics-dashboard>
+                </section>
+                
+                <section id="testing" aria-labelledby="testing-heading">
+                    <h1 id="testing-heading">Prompt Testing</h1>
+                    <testing-interface></testing-interface>
+                </section>
+                
+                <section id="settings" aria-labelledby="settings-heading">
+                    <h1 id="settings-heading">Settings</h1>
+                    <settings-panel></settings-panel>
+                </section>
+            </main>
+        </template>
+    </app-shell>
+</body>
+</html> 
